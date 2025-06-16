@@ -1,6 +1,6 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
+import { Tabs } from 'expo-router';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -19,25 +19,54 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
+          ios: { position: 'absolute' },
           default: {},
         }),
-      }}>
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="home/index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="house.fill" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="trainer/index"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Trainer',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="figure.walk" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="nutrition/index"
+        options={{
+          title: 'Nutrition',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="fork.knife" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="myprogram/index"
+        options={{
+          title: 'My Program',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="doc.text" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile/index"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="person.crop.circle" color={color} />
+          ),
         }}
       />
     </Tabs>
