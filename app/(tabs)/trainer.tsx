@@ -54,10 +54,10 @@ export default function TrainerScreen() {
         {/* Action Buttons */}
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
-            <Text style={styles.buttonText}>Generate Workout</Text>
+            <Text style={styles.buttonText}>New Workout</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
-            <Text style={styles.buttonText}>Start Condition</Text>
+            <Text style={styles.buttonText}>Condition</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
             <Text style={styles.buttonText}>Recovery</Text>
