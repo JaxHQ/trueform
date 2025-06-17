@@ -1,6 +1,13 @@
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
-import { Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TrainerScreen() {
@@ -10,10 +17,10 @@ export default function TrainerScreen() {
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Status Update Section */}
-        <View style={[styles.card, { marginBottom: 12 }]}> {/* Slightly tighter spacing */}
+        <View style={styles.card}>
           <Text style={styles.sectionTitle}>Let us know how you're feeling today</Text>
           <TextInput
-            style={[styles.input, { height: 150, textAlignVertical: 'top' }]}
+            style={[styles.input, { height: 120, textAlignVertical: 'top' }]}
             placeholder="Sore leg, low energy, etc."
             value={input}
             onChangeText={setInput}
@@ -25,7 +32,7 @@ export default function TrainerScreen() {
         </View>
 
         {/* Next Workout Section */}
-        <View style={[styles.card, { marginBottom: 12 }]}>
+        <View style={styles.card}>
           <Text style={styles.sectionSubTitle}>YOUR NEXT WORKOUT</Text>
           <Text style={styles.workoutTitle}>Upper Body • Day 14</Text>
           <Text style={styles.workoutDetail}>5 exercises</Text>
@@ -37,7 +44,7 @@ export default function TrainerScreen() {
         </View>
 
         {/* Weekly Breakdown Section */}
-        <View style={[styles.card, { marginBottom: 16 }]}>
+        <View style={styles.card}>
           <Text style={styles.sectionSubTitle}>WEEKLY MUSCLE BREAKDOWN</Text>
           <View style={styles.bar} />
           <View style={[styles.bar, { width: '70%' }]} />
@@ -46,9 +53,15 @@ export default function TrainerScreen() {
 
         {/* Action Buttons */}
         <View style={styles.actionRow}>
-          <Button title="Generate Workout" onPress={() => {}} />
-          <Button title="Start Condition" onPress={() => {}} />
-          <Button title="Recovery / Mobility" onPress={() => {}} />
+          <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
+            <Text style={styles.buttonText}>Generate Workout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
+            <Text style={styles.buttonText}>Start Condition</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
+            <Text style={styles.buttonText}>Recovery</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -59,11 +72,9 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     backgroundColor: '#fff',
-    alignItems: 'center',
     flexGrow: 1,
-    justifyContent: 'flex-start', // avoid space-between pushing cards apart
     minHeight: Dimensions.get('window').height,
-    paddingTop: 32, // safe space from top
+    paddingTop: 40,
   },
   card: {
     width: '100%',
@@ -71,33 +82,34 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 12,
     padding: 16,
+    marginBottom: 20,
     backgroundColor: '#fefefe',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   sectionSubTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
     borderColor: '#999',
     borderRadius: 8,
-    padding: 8,
+    padding: 10,
     marginBottom: 12,
-    width: '100%',
+    backgroundColor: '#fff',
   },
   button: {
     borderWidth: 1,
     borderColor: '#000',
     borderRadius: 8,
-    paddingVertical: 10,
+    paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 4,
   },
   buttonText: {
     fontWeight: 'bold',
@@ -108,8 +120,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   workoutDetail: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#555',
+    marginBottom: 2,
   },
   bar: {
     height: 10,
@@ -121,8 +134,14 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    width: '100%',
     marginTop: 16,
-    paddingBottom: 24,
+  },
+  actionButton: {
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
   },
 });

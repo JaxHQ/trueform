@@ -14,8 +14,8 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
+        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
@@ -25,7 +25,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="home/index"
+        name="index" // (tabs)/index.tsx = Home tab
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => (
@@ -34,7 +34,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="trainer/index"
+        name="trainer" // (tabs)/trainer/index.tsx
         options={{
           title: 'Trainer',
           tabBarIcon: ({ color }) => (
@@ -43,7 +43,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="nutrition/index"
+        name="nutrition" // (tabs)/nutrition/index.tsx
         options={{
           title: 'Nutrition',
           tabBarIcon: ({ color }) => (
@@ -52,7 +52,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="myprogram/index"
+        name="myprogram"
         options={{
           title: 'My Program',
           tabBarIcon: ({ color }) => (
@@ -61,7 +61,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile/index"
+        name="profile"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => (
