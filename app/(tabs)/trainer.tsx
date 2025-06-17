@@ -139,9 +139,9 @@ const styles = StyleSheet.create({
   actionButton: {
     borderWidth: 1,
     borderColor: '#000',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    borderRadius: 5,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
     backgroundColor: '#fff',
   },
 });

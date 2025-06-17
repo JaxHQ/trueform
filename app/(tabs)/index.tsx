@@ -1,4 +1,5 @@
-import { View, Text, Button, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 
 export default function HomeScreen() {
   return (
@@ -20,12 +21,12 @@ export default function HomeScreen() {
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>TODAY’S WORKOUT</Text>
         <Text style={styles.sectionText}>You don’t have a workout planned today.</Text>
-        <View style={styles.buttonWrapper}>
-          <Button title="Generate a New Workout" onPress={() => {}} />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button title="Do Conditioning or Recovery Instead" onPress={() => {}} />
-        </View>
+        <TouchableOpacity style={styles.button} onPress={() => {}}>
+          <Text style={styles.buttonText}>Generate a New Workout</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => {}}>
+          <Text style={styles.buttonText}>Do Conditioning or Recovery Instead</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Steps Section */}
@@ -38,9 +39,15 @@ export default function HomeScreen() {
       {/* Quick Actions */}
       <View style={styles.card}>
         <View style={styles.quickActions}>
-          <Button title="Log Meal" onPress={() => {}} />
-          <Button title="Start Recovery" onPress={() => {}} />
-          <Button title="Add Water" onPress={() => {}} />
+          <TouchableOpacity style={styles.smallButton}>
+            <Text style={styles.buttonText}>Log Meal</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.smallButton}>
+            <Text style={styles.buttonText}>Start Recovery</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.smallButton}>
+            <Text style={styles.buttonText}>Add Water</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -101,8 +108,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#333',
   },
-  buttonWrapper: {
+  button: {
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     marginVertical: 6,
+    alignItems: 'center',
+  },
+  smallButton: {
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    marginHorizontal: 4,
+  },
+  buttonText: {
+    color: '#000',
+    fontWeight: '500',
   },
   progressBar: {
     height: 10,

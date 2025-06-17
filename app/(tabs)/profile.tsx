@@ -1,56 +1,58 @@
-import { View, Text, Button, StyleSheet, ScrollView, Image } from 'react-native';
-import { Dimensions } from 'react-native';
+import React from 'react';
+import { View, Text, Button, StyleSheet, ScrollView, SafeAreaView, Dimensions } from 'react-native';
 
 export default function ProfileScreen() {
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Profile Header */}
-      <View style={styles.header}>
-        <View style={styles.avatarPlaceholder} />
-        <View>
-          <Text style={styles.welcome}>Welcome back!</Text>
-          <Text style={styles.xp}>XP Level 5</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Profile Header */}
+        <View style={styles.header}>
+          <View style={styles.avatarPlaceholder} />
+          <View>
+            <Text style={styles.welcome}>Welcome back!</Text>
+            <Text style={styles.xp}>XP Level 5</Text>
+          </View>
         </View>
-      </View>
 
-      {/* Goal Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Your Goal</Text>
-        <Text style={styles.cardText}>Gain 4 kg of muscle</Text>
-        <Text style={styles.cardText}>Training 5 days/week</Text>
-        <Text style={styles.cardText}>3,000 calories/day</Text>
-        <Text style={styles.cardText}>Week 4 of 12</Text>
-      </View>
-
-      {/* Preferences Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Preferences</Text>
-        <Text style={styles.cardText}>Location: Gym</Text>
-        <Text style={styles.cardText}>Recovery & Conditioning: ON</Text>
-        <Text style={styles.cardText}>Injuries: Back tightness</Text>
-        <View style={styles.editButtonWrapper}>
-          <Button title="Edit Preferences" onPress={() => {}} />
+        {/* Goal Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Your Goal</Text>
+          <Text style={styles.cardText}>Gain 4 kg of muscle</Text>
+          <Text style={styles.cardText}>Training 5 days/week</Text>
+          <Text style={styles.cardText}>3,000 calories/day</Text>
+          <Text style={styles.cardText}>Week 4 of 12</Text>
         </View>
-      </View>
 
-      {/* Footer Actions */}
-      <View style={styles.footerRow}>
-        <Button title="Preferences" onPress={() => {}} />
-        <Button title="App Settings" onPress={() => {}} />
-        <Button title="Log Out" onPress={() => {}} />
-      </View>
-    </ScrollView>
+        {/* Preferences Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Preferences</Text>
+          <Text style={styles.cardText}>Location: Gym</Text>
+          <Text style={styles.cardText}>Recovery & Conditioning: ON</Text>
+          <Text style={styles.cardText}>Injuries: Back tightness</Text>
+          <View style={styles.editButtonWrapper}>
+            <Button title="Edit Preferences" onPress={() => {}} />
+          </View>
+        </View>
+
+        {/* Footer Actions */}
+        <View style={styles.footerRow}>
+          <Button title="Preferences" onPress={() => {}} />
+          <Button title="App Settings" onPress={() => {}} />
+          <Button title="Log Out" onPress={() => {}} />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    paddingTop: 48, // 👈 shifts everything down
     backgroundColor: '#fff',
     alignItems: 'center',
-    flexGrow: 1, // makes the content grow to fill available height
-   justifyContent: 'space-between', // adds spacing between cards
-   minHeight: Dimensions.get('window').height,
+    flexGrow: 1,
+    minHeight: Dimensions.get('window').height,
   },
   header: {
     flexDirection: 'row',
@@ -98,6 +100,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
-    marginTop: 24,
+    marginTop: 32,
   },
 });

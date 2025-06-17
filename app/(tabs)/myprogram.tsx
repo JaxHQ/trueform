@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#888',
     borderRadius: 8,
-    padding: 10,
+    padding: 50,
   },
   sectionHeader: {
     fontSize: 14,
