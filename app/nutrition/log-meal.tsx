@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 export default function LogMealScreen() {
   const [description, setDescription] = useState('');
@@ -20,22 +20,28 @@ export default function LogMealScreen() {
     'Nice! This meal provides 41g of protein and moderate carbs. You’re close to your daily protein target.'
   );
   const [mealType, setMealType] = useState('Lunch');
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState([
+    { label: 'Breakfast', value: 'Breakfast' },
+    { label: 'Lunch', value: 'Lunch' },
+    { label: 'Dinner', value: 'Dinner' },
+    { label: 'Snack', value: 'Snack' },
+  ]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Log Meal</Text>
-
-      <View style={styles.pickerWrapper}>
-        <Picker
-          selectedValue={mealType}
-          onValueChange={(itemValue) => setMealType(itemValue)}
-          style={styles.picker}
-        >
-          <Picker.Item label="Breakfast" value="Breakfast" />
-          <Picker.Item label="Lunch" value="Lunch" />
-          <Picker.Item label="Dinner" value="Dinner" />
-          <Picker.Item label="Snack" value="Snack" />
-        </Picker>
+      <View style={styles.topRow}>
+        <Text style={styles.title}>Log Meal</Text>
+        <DropDownPicker
+          open={open}
+          value={mealType}
+          items={items}
+          setOpen={setOpen}
+          setValue={setMealType}
+          setItems={setItems}
+          containerStyle={{ width: 160 }}
+          style={{ marginBottom: 12 }}
+        />
       </View>
 
       {/* Description Input */}
@@ -49,8 +55,8 @@ export default function LogMealScreen() {
           textAlign="left"
           textAlignVertical="top"
         />
+        <Ionicons name="camera-outline" size={24} color="#555" style={styles.icon} />
       </View>
-      <Ionicons name="camera-outline" size={24} color="#555" style={styles.icon} />
 
       {/* Macro Inputs */}
       <View style={styles.macrosRow}>
@@ -87,34 +93,45 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     minHeight: Dimensions.get('window').height,
   },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  inlinePickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    overflow: 'hidden',
+    width: 150,
+    height: 40,
+    justifyContent: 'center',
+  },
+  inlinePicker: {
+    height: 40,
+    width: '100%',
+    backgroundColor: '#fff',
+  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-  },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 50,
-    width: '100%',
   },
   descriptionWrapper: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
     paddingHorizontal: 10,
+    paddingVertical: 8,
     marginBottom: 12,
-    height: 120,
-    flexDirection: 'column',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   descriptionInput: {
     flex: 1,
-    padding: 12,
+    padding: 16,
+    minHeight: 120,
     fontSize: 16,
     textAlignVertical: 'top',
     textAlign: 'left',
