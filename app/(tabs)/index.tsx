@@ -1,6 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
@@ -47,7 +50,7 @@ export default function HomeScreen() {
       {/* Quick Actions */}
       <View style={styles.card}>
         <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.blackButton}>
+          <TouchableOpacity style={styles.blackButton} onPress={() => router.push('/nutrition/log-meal')}>
             <Text style={styles.blackButtonText}>Log Meal</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.blackButton}>
