@@ -1,22 +1,15 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Dimensions,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 
 export default function HomeScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
       <View style={styles.headerRow}>
-        <Text style={styles.username}>Hi Jackson</Text>
-        <TouchableOpacity onPress={() => {}}>
-          <Text style={styles.achievement}>🔥 95% Complete</Text>
-        </TouchableOpacity>
+        <Text style={styles.greeting}>Hi, Jax 👋</Text>
+        <View style={styles.achievementBox}>
+          <Text style={styles.achievementText}>6/7</Text>
+          <Text style={styles.achievementLabel}>Logs this week</Text>
+        </View>
       </View>
 
       {/* Calorie Summary Section */}
@@ -26,7 +19,7 @@ export default function HomeScreen() {
           <Text style={styles.caloriesLabel}>CALS REMAINING</Text>
         </View>
         <View style={styles.macrosRow}>
-          <Text>1200 Protein</Text>
+          <Text>120g Protein</Text>
           <Text>185g Carbs</Text>
           <Text>25g Fat</Text>
         </View>
@@ -36,11 +29,11 @@ export default function HomeScreen() {
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>TODAY’S WORKOUT</Text>
         <Text style={styles.sectionText}>You don’t have a workout planned today.</Text>
-        <TouchableOpacity style={styles.button} onPress={() => {}}>
-          <Text style={styles.buttonText}>Generate a New Workout</Text>
+        <TouchableOpacity style={styles.blackButton}>
+          <Text style={styles.blackButtonText}>Generate a New Workout</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => {}}>
-          <Text style={styles.buttonText}>Do Conditioning or Recovery Instead</Text>
+        <TouchableOpacity style={styles.blackButton}>
+          <Text style={styles.blackButtonText}>Do Conditioning or Recovery Instead</Text>
         </TouchableOpacity>
       </View>
 
@@ -54,14 +47,14 @@ export default function HomeScreen() {
       {/* Quick Actions */}
       <View style={styles.card}>
         <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.smallButton}>
-            <Text style={styles.buttonText}>Log Meal</Text>
+          <TouchableOpacity style={styles.blackButton}>
+            <Text style={styles.blackButtonText}>Log Meal</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.smallButton}>
-            <Text style={styles.buttonText}>Start Recovery</Text>
+          <TouchableOpacity style={styles.blackButton}>
+            <Text style={styles.blackButtonText}>Start Recovery</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.smallButton}>
-            <Text style={styles.buttonText}>Add Water</Text>
+          <TouchableOpacity style={styles.blackButton}>
+            <Text style={styles.blackButtonText}>Add Water</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -71,28 +64,38 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
     paddingTop: 48,
+    padding: 16,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    minHeight: Dimensions.get('window').height,
+    minHeight: Dimensions.get('window').height * 0.95,
     backgroundColor: '#fff',
   },
   headerRow: {
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 24,
     alignItems: 'center',
-    marginBottom: 12,
   },
-  username: {
+  greeting: {
     fontSize: 18,
     fontWeight: '600',
   },
-  achievement: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#f57c00',
+  achievementBox: {
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  achievementText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  achievementLabel: {
+    fontSize: 10,
+    color: '#555',
   },
   card: {
     width: '100%',
@@ -140,35 +143,28 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#333',
   },
-  button: {
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginVertical: 6,
-    alignItems: 'center',
-  },
-  smallButton: {
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    marginHorizontal: 4,
-  },
-  buttonText: {
-    color: '#000',
-    fontWeight: '500',
-  },
   progressBar: {
     height: 10,
     backgroundColor: '#ccc',
     borderRadius: 5,
     marginTop: 4,
   },
+  blackButton: {
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  blackButtonText: {
+    color: '#000',
+    fontWeight: 'bold',
+  },
   quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: 'column',
+    gap: 8,
   },
 });
