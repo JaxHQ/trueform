@@ -51,7 +51,7 @@ export default function HomeScreen() {
             <Text style={styles.blackButtonText}>Log Meal</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.blackButton}>
-            <Text style={styles.blackButtonText}>Start Recovery</Text>
+            <Text style={styles.blackButtonText}>Recovery</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.blackButton}>
             <Text style={styles.blackButtonText}>Add Water</Text>
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   quickActions: {
-    flexDirection: 'column',
-    gap: 8,
+    flexDirection: 'row',
+    gap: 17,
   },
 });
