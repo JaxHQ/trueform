@@ -1,9 +1,24 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
 
 export default function HomeScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Header */}
+      <View style={styles.headerRow}>
+        <Text style={styles.username}>Hi Jackson</Text>
+        <TouchableOpacity onPress={() => {}}>
+          <Text style={styles.achievement}>🔥 95% Complete</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Calorie Summary Section */}
       <View style={styles.card}>
         <View style={styles.ringPlaceholder}>
@@ -57,10 +72,27 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    paddingTop: 48,
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: Dimensions.get('window').height * 0.9,
+    justifyContent: 'flex-start',
+    minHeight: Dimensions.get('window').height,
     backgroundColor: '#fff',
+  },
+  headerRow: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  username: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  achievement: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#f57c00',
   },
   card: {
     width: '100%',
