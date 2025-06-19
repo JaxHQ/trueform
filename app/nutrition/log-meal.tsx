@@ -81,7 +81,7 @@ export default function LogMealScreen() {
         <Text style={styles.outlineButtonText}>Retry Estimate</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.outlineButton}>
-        <Text style={styles.outlineButtonText}>Log Meal</Text>
+        <Text style={styles.outlineButtonText}>Submit</Text>
       </TouchableOpacity>
     </View>
   );

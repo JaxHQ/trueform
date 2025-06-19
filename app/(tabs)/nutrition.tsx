@@ -1,8 +1,14 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Dimensions } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function NutritionScreen() {
+  const router = useRouter();
+
+  const meals = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -22,25 +28,26 @@ export default function NutritionScreen() {
         </View>
 
         {/* Meals Section */}
-        {['BREAKFAST', 'LUNCH', 'DINNER'].map((meal, i) => (
+        {meals.map((meal, i) => (
           <View key={i} style={styles.card}>
-            <Text style={styles.mealTitle}>{meal}</Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.mealTitle}>{meal}</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({ pathname: '/nutrition/log-meal', params: { mealType: meal.split(' ')[0].charAt(0) + meal.split(' ')[0].slice(1).toLowerCase() } })
+                }
+              >
+                <Ionicons name="add-circle-outline" size={22} color="#333" />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.mealPlaceholder}>[X]</Text>
           </View>
         ))}
 
-        {/* Add Meal Button */}
-        <TouchableOpacity style={styles.addMealBtn} onPress={() => {}}>
-          <Text style={styles.addMealText}>Add Meal</Text>
-        </TouchableOpacity>
-
         {/* Extra Buttons */}
         <View style={styles.bottomButtons}>
-          <TouchableOpacity style={styles.secondaryButton} onPress={() => {}}>
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/nutrition/meal-history')}>
             <Text style={styles.secondaryText}>Meal History</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryButton} onPress={() => {}}>
-            <Text style={styles.secondaryText}>Meal Ideas</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -104,20 +111,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     marginTop: 20,
   },
-  addMealBtn: {
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 24,
-  },
-  addMealText: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
   bottomButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -134,5 +127,11 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     fontWeight: '600',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
 });
