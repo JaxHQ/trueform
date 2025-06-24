@@ -27,6 +27,7 @@ export default function LogMealScreen() {
   const [customDate, setCustomDate] = useState<Date | null>(null);
   const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [showSavedMeals, setShowSavedMeals] = useState(false);
+  const [selectedSavedMeal, setSelectedSavedMeal] = useState<string | null>(null);
 
   const getMealDate = () => {
     const now = new Date();
@@ -153,52 +154,6 @@ export default function LogMealScreen() {
         </View>
       </View>
 
-      {/* Saved Meals Dropdown */}
-      <View style={{ marginBottom: 12 }}>
-        <TouchableOpacity
-          onPress={() => setShowSavedMeals(!showSavedMeals)}
-          style={{
-            borderWidth: 1,
-            borderColor: '#ccc',
-            borderRadius: 8,
-            paddingVertical: 10,
-            paddingHorizontal: 14,
-            backgroundColor: '#fafafa',
-          }}
-        >
-          <Text style={{ fontSize: 16 }}>
-            {description ? description : 'Select a saved or recent meal'}
-          </Text>
-        </TouchableOpacity>
-        {showSavedMeals && (
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              marginTop: 4,
-              backgroundColor: '#fff',
-              maxHeight: 120,
-            }}
-          >
-            <ScrollView>
-              {savedMeals.map((meal, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => {
-                    setDescription(meal);
-                    setShowSavedMeals(false);
-                  }}
-                  style={{ paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: idx < savedMeals.length - 1 ? 1 : 0, borderColor: '#eee' }}
-                >
-                  <Text>{meal}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-      </View>
-
       {/* Description Input */}
       <View style={styles.descriptionWrapper}>
         <TextInput
@@ -255,6 +210,70 @@ export default function LogMealScreen() {
           Submit for Analysis
         </Text>
       </TouchableOpacity>
+
+      {/* Saved Meals Dropdown */}
+      <View style={{ marginBottom: 12 }}>
+        <TouchableOpacity
+          onPress={() => setShowSavedMeals(!showSavedMeals)}
+          style={{
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 8,
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            backgroundColor: '#fafafa',
+          }}
+        >
+          <Text style={{ fontSize: 16 }}>
+            Select a saved or recent meal
+          </Text>
+        </TouchableOpacity>
+        {showSavedMeals && (
+          <View
+            style={{
+              borderWidth: 1,
+              borderColor: '#ccc',
+              borderRadius: 8,
+              marginTop: 4,
+              backgroundColor: '#fff',
+              maxHeight: 120,
+            }}
+          >
+            <ScrollView>
+              {savedMeals.map((meal, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => {
+                    setSelectedSavedMeal(meal);
+                    setShowSavedMeals(false);
+                  }}
+                  style={{ paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: idx < savedMeals.length - 1 ? 1 : 0, borderColor: '#eee' }}
+                >
+                  <Text>{meal}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </View>
+
+      {selectedSavedMeal && (
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#000',
+            paddingVertical: 10,
+            borderRadius: 8,
+            alignItems: 'center',
+            marginTop: 12,
+          }}
+          onPress={() => {
+            Alert.alert('Submit', `Submit saved meal: ${selectedSavedMeal}`);
+            // TODO: Add real submit logic for saved meal
+          }}
+        >
+          <Text style={{ color: '#fff', fontSize: 16 }}>Submit Saved Meal</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Macro Inputs removed */}
 
