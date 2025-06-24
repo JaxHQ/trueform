@@ -22,7 +22,7 @@ export default function NutritionScreen() {
           </View>
           <View style={styles.macroRow}>
             <Text style={styles.macroLabel}>PROTEIN{"\n"}0</Text>
-            <Text style={styles.macroLabel}>CARBOHYDRAT{"\n"}0</Text>
+            <Text style={styles.macroLabel}>CARB{"\n"}0</Text>
             <Text style={styles.macroLabel}>FAT{"\n"}0</Text>
           </View>
         </View>

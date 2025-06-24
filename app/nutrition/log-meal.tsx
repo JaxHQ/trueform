@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Alert,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import DropDownPicker from 'react-native-dropdown-picker';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function LogMealScreen() {
   const [description, setDescription] = useState('');
@@ -17,31 +19,131 @@ export default function LogMealScreen() {
   const [fat, setFat] = useState('0');
   const [calories, setCalories] = useState('0');
   const [gptFeedback, setGptFeedback] = useState(
-    'Nice! This meal provides 41g of protein and moderate carbs. You’re close to your daily protein target.'
+    'Please add any useful info to help us give you the most accurate results.'
   );
-  const [mealType, setMealType] = useState('Lunch');
-  const [open, setOpen] = useState(false);
-  const [items, setItems] = useState([
-    { label: 'Breakfast', value: 'Breakfast' },
-    { label: 'Lunch', value: 'Lunch' },
-    { label: 'Dinner', value: 'Dinner' },
-    { label: 'Snack', value: 'Snack' },
-  ]);
+  const [mealDateMode, setMealDateMode] = useState<'today' | 'yesterday' | 'custom'>('today');
+  const [customDate, setCustomDate] = useState<Date | null>(null);
+  const [photoUris, setPhotoUris] = useState<string[]>([]);
+
+  const getMealDate = () => {
+    const now = new Date();
+    if (mealDateMode === 'today') return now.toISOString().split('T')[0];
+    if (mealDateMode === 'yesterday') {
+      const yest = new Date(now);
+      yest.setDate(now.getDate() - 1);
+      return yest.toISOString().split('T')[0];
+    }
+    return customDate ? customDate.toISOString().split('T')[0] : now.toISOString().split('T')[0];
+  };
+
+  const submitForAnalysis = async () => {
+    const mealDate = getMealDate();
+
+    const payload = {
+      userId: 'demo123',
+      mealText: description,
+      mealDate,
+      mealTime: 'today',
+      photoUrl: photoUris[0] || null,
+    };
+
+    try {
+      const response = await fetch('https://hook.eu2.make.com/ri37mnljdnupccenx3p1b2b0374jvt1a', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        setGptFeedback(responseData.feedback || 'Thanks! Feedback received.');
+        Alert.alert('Success', 'Meal submitted for analysis.');
+      } else {
+        Alert.alert('Error', 'Failed to submit meal. Try again.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'An error occurred. Please try again.');
+    }
+  };
+
+  const handleAddPhoto = async () => {
+    Alert.alert('Add Photo', 'Choose an option', [
+      {
+        text: 'Take Photo',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permission Denied', 'Camera access is required.');
+            return;
+          }
+
+          const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            quality: 0.7,
+          });
+
+          if (!result.canceled && result.assets?.length > 0) {
+            setPhotoUris(prev => [...prev, result.assets[0].uri]);
+            Alert.alert('Photo added!');
+          }
+        },
+      },
+      {
+        text: 'Choose from Library',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permission Denied', 'Media library access is required.');
+            return;
+          }
+
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.7,
+          });
+
+          if (!result.canceled && result.assets?.length > 0) {
+            setPhotoUris(prev => [...prev, result.assets[0].uri]);
+            Alert.alert('Photo added!');
+          }
+        },
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
         <Text style={styles.title}>Log Meal</Text>
-        <DropDownPicker
-          open={open}
-          value={mealType}
-          items={items}
-          setOpen={setOpen}
-          setValue={setMealType}
-          setItems={setItems}
-          containerStyle={{ width: 160 }}
-          style={{ marginBottom: 12 }}
-        />
+        <View style={{ flexDirection: 'row' }}>
+          {['today', 'yesterday', 'custom'].map(mode => (
+            <TouchableOpacity
+              key={mode}
+              onPress={() => {
+                setMealDateMode(mode as any);
+                if (mode === 'custom') {
+                  Alert.alert('Date Picker Coming Soon'); // placeholder for date picker
+                }
+              }}
+              style={{
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                backgroundColor: mealDateMode === mode ? '#000' : '#eee',
+                borderRadius: 6,
+                marginLeft: 8,
+              }}
+            >
+              <Text style={{ color: mealDateMode === mode ? '#fff' : '#000' }}>
+                {mode === 'today' ? 'Today' : mode === 'yesterday' ? 'Yesterday' : 'Pick a date'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       {/* Description Input */}
@@ -55,8 +157,51 @@ export default function LogMealScreen() {
           textAlign="left"
           textAlignVertical="top"
         />
-        <Ionicons name="camera-outline" size={24} color="#555" style={styles.icon} />
+        <TouchableOpacity onPress={handleAddPhoto}>
+          <Ionicons name="camera-outline" size={24} color="#555" style={styles.icon} />
+        </TouchableOpacity>
       </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+        {photoUris.map((uri, index) => (
+          <View key={index} style={{ position: 'relative', marginRight: 8, marginBottom: 8 }}>
+            <Image
+              source={{ uri }}
+              style={{ width: 60, height: 60, borderRadius: 6 }}
+              resizeMode="cover"
+            />
+            <TouchableOpacity
+              onPress={() => setPhotoUris(prev => prev.filter((_, i) => i !== index))}
+              style={{
+                position: 'absolute',
+                top: -6,
+                right: -6,
+                backgroundColor: '#000',
+                borderRadius: 10,
+                width: 20,
+                height: 20,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ color: '#fff', fontSize: 12 }}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+      <TouchableOpacity
+        style={[
+          styles.inlineSubmitButton,
+          {
+            backgroundColor: description.trim() && photoUris.length > 0 ? '#000' : '#ccc',
+          },
+        ]}
+        onPress={submitForAnalysis}
+        disabled={!description.trim() || photoUris.length === 0}
+      >
+        <Text style={[styles.inlineSubmitButtonText, { color: '#fff' }]}>
+          Submit for Analysis
+        </Text>
+      </TouchableOpacity>
 
       {/* Macro Inputs */}
       <View style={styles.macrosRow}>
@@ -124,7 +269,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    marginBottom: 12,
+    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
@@ -138,6 +283,19 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginLeft: 8,
+  },
+  inlineSubmitButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#000',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginBottom: 12,
+  },
+  inlineSubmitButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   macrosRow: {
     flexDirection: 'row',
