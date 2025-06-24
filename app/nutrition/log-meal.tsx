@@ -8,22 +8,25 @@ import {
   Dimensions,
   Alert,
   Image,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
+
+const savedMeals = ['Chicken Bowl 🍗', 'Egg Toast 🥚🍞'];
 
 export default function LogMealScreen() {
+  const router = useRouter();
   const [description, setDescription] = useState('');
-  const [protein, setProtein] = useState('0');
-  const [carbs, setCarbs] = useState('0');
-  const [fat, setFat] = useState('0');
-  const [calories, setCalories] = useState('0');
-  const [gptFeedback, setGptFeedback] = useState(
-    'Please add any useful info to help us give you the most accurate results.'
-  );
+  // const [gptFeedback, setGptFeedback] = useState(
+  //   'Please add any useful info to help us give you the most accurate results.'
+  // );
+  // Removed macro state variables
   const [mealDateMode, setMealDateMode] = useState<'today' | 'yesterday' | 'custom'>('today');
   const [customDate, setCustomDate] = useState<Date | null>(null);
   const [photoUris, setPhotoUris] = useState<string[]>([]);
+  const [showSavedMeals, setShowSavedMeals] = useState(false);
 
   const getMealDate = () => {
     const now = new Date();
@@ -40,11 +43,11 @@ export default function LogMealScreen() {
     const mealDate = getMealDate();
 
     const payload = {
-      userId: 'demo123',
+      userId: '9eaaf752-0f1a-44fa-93a1-387ea322e505',
       mealText: description,
       mealDate,
       mealTime: 'today',
-      photoUrl: photoUris[0] || null,
+      photoUrls: photoUris,
     };
 
     try {
@@ -58,8 +61,12 @@ export default function LogMealScreen() {
 
       if (response.ok) {
         const responseData = await response.json();
-        setGptFeedback(responseData.feedback || 'Thanks! Feedback received.');
+        // setGptFeedback(responseData.feedback || 'Thanks! Feedback received.');
         Alert.alert('Success', 'Meal submitted for analysis.');
+        router.push({
+          pathname: '/nutrition/analyze-meal',
+          params: { mealId: responseData.mealId },
+        });
       } else {
         Alert.alert('Error', 'Failed to submit meal. Try again.');
       }
@@ -146,6 +153,52 @@ export default function LogMealScreen() {
         </View>
       </View>
 
+      {/* Saved Meals Dropdown */}
+      <View style={{ marginBottom: 12 }}>
+        <TouchableOpacity
+          onPress={() => setShowSavedMeals(!showSavedMeals)}
+          style={{
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 8,
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            backgroundColor: '#fafafa',
+          }}
+        >
+          <Text style={{ fontSize: 16 }}>
+            {description ? description : 'Select a saved or recent meal'}
+          </Text>
+        </TouchableOpacity>
+        {showSavedMeals && (
+          <View
+            style={{
+              borderWidth: 1,
+              borderColor: '#ccc',
+              borderRadius: 8,
+              marginTop: 4,
+              backgroundColor: '#fff',
+              maxHeight: 120,
+            }}
+          >
+            <ScrollView>
+              {savedMeals.map((meal, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => {
+                    setDescription(meal);
+                    setShowSavedMeals(false);
+                  }}
+                  style={{ paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: idx < savedMeals.length - 1 ? 1 : 0, borderColor: '#eee' }}
+                >
+                  <Text>{meal}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </View>
+
       {/* Description Input */}
       <View style={styles.descriptionWrapper}>
         <TextInput
@@ -203,31 +256,19 @@ export default function LogMealScreen() {
         </Text>
       </TouchableOpacity>
 
-      {/* Macro Inputs */}
-      <View style={styles.macrosRow}>
-        <TextInput style={styles.macroInput} value={protein} onChangeText={setProtein} keyboardType="numeric" />
-        <TextInput style={styles.macroInput} value={carbs} onChangeText={setCarbs} keyboardType="numeric" />
-        <TextInput style={styles.macroInput} value={fat} onChangeText={setFat} keyboardType="numeric" />
-        <TextInput style={styles.macroInput} value={calories} onChangeText={setCalories} keyboardType="numeric" />
-      </View>
-      <View style={styles.macroLabels}>
-        <Text>PROTEIN</Text>
-        <Text>CARBS</Text>
-        <Text>FAT</Text>
-        <Text>CALORIES</Text>
-      </View>
+      {/* Macro Inputs removed */}
 
       {/* GPT Feedback */}
-      <Text style={styles.feedbackTitle}>GPT FEEDBACK</Text>
-      <Text style={styles.feedbackText}>{gptFeedback}</Text>
+      {/* <Text style={styles.feedbackTitle}>GPT FEEDBACK</Text>
+      <Text style={styles.feedbackText}>{gptFeedback}</Text> */}
 
       {/* Buttons */}
-      <TouchableOpacity style={styles.outlineButton}>
+      {/* <TouchableOpacity style={styles.outlineButton}>
         <Text style={styles.outlineButtonText}>Retry Estimate</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.outlineButton}>
         <Text style={styles.outlineButtonText}>Submit</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }
@@ -276,7 +317,7 @@ const styles = StyleSheet.create({
   descriptionInput: {
     flex: 1,
     padding: 16,
-    minHeight: 120,
+    minHeight: 180,
     fontSize: 16,
     textAlignVertical: 'top',
     textAlign: 'left',
@@ -297,27 +338,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  macrosRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  macroInput: {
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    width: '23%',
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  macroLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    paddingHorizontal: 4,
-  },
+  // macrosRow, macroInput, macroLabels styles removed
   feedbackTitle: {
     fontWeight: '600',
     marginBottom: 6,
