@@ -52,13 +52,15 @@ export default function LogMealScreen() {
   const submitForAnalysis = async () => {
     const mealDate = getMealDate();
 
+    // Navigate immediately to analyzing screen with pending=true
+    router.push({
+      pathname: '/nutrition/analyze-meal',
+      params: { pending: 'true' },
+    });
+
     let photoUrls: string[] = [];
-    console.log("Uploading these URIs:", localPhotoUris);
     try {
-      showAnalyzingScreen();
       photoUrls = await uploadPhotosToStorage(localPhotoUris, userId);
-      console.log('Photo URLs:', photoUrls);
-      console.log("Photo URLs returned:", photoUrls);
     } catch (uploadError) {
       console.error('Error uploading photos:', uploadError);
     }
@@ -68,11 +70,8 @@ export default function LogMealScreen() {
       mealText: description,
       mealDate,
       mealTime: mealDateMode,
-      photoUrlsArray: photoUrls,
+      photoUrlsArray: Array.isArray(photoUrls) ? photoUrls : [],
     };
-
-    console.log('Sending payload to Make webhook:', payload);
-    console.log("Payload being sent:", payload);
 
     try {
       const response = await fetch('https://hook.eu2.make.com/ri37mnljdnupccenx3p1b2b0374jvt1a', {
@@ -85,33 +84,29 @@ export default function LogMealScreen() {
 
       if (response.ok) {
         const responseData = await response.json();
-        console.log('Webhook response:', responseData);
         const mealId =
           responseData.mealId ??
           responseData.mealid ??
           responseData.MealId ??
           responseData.mealID;
 
-        if (mealId) {
-          // 🔄 Swap the pending screen for the finished view
-          router.replace({
-            pathname: '/nutrition/analyze-meal',
-            params: { mealId },
-          });
-        } else {
-          router.replace({
-            pathname: '/nutrition/analyze-meal',
-            params: { error: 'noMealId' },
-          });
-        }
-        // Removed: Alert.alert('Success', 'Meal submitted for analysis.');
+        router.replace({
+          pathname: '/nutrition/confirm-meal',
+          params: mealId ? { mealId } : { error: 'noMealId' },
+        });
       } else {
         console.error('Webhook error:', response.statusText);
-        Alert.alert('Error', 'Failed to submit meal. Try again.');
+        router.replace({
+          pathname: '/nutrition/analyze-meal',
+          params: { error: 'submitFailed' },
+        });
       }
     } catch (error) {
       console.error('Network error during webhook POST:', error);
-      Alert.alert('Error', 'An error occurred. Please try again.');
+      router.replace({
+        pathname: '/nutrition/analyze-meal',
+        params: { error: 'networkError' },
+      });
     }
   };
 
