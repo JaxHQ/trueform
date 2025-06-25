@@ -7,8 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 export default function NutritionScreen() {
   const router = useRouter();
 
-  const meals = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -27,22 +25,16 @@ export default function NutritionScreen() {
           </View>
         </View>
 
-        {/* Meals Section */}
-        {meals.map((meal, i) => (
-          <View key={i} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.mealTitle}>{meal}</Text>
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({ pathname: '/nutrition/log-meal', params: { mealType: meal.split(' ')[0].charAt(0) + meal.split(' ')[0].slice(1).toLowerCase() } })
-                }
-              >
-                <Ionicons name="add-circle-outline" size={22} color="#333" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.mealPlaceholder}>[X]</Text>
-          </View>
-        ))}
+        <View style={styles.card}>
+          <Text style={styles.title}>TODAY'S MEALS</Text>
+          <Text style={styles.mealPlaceholder}>No meals logged yet today.</Text>
+          <TouchableOpacity
+            onPress={() => router.push('/nutrition/log-meal')}
+            style={{ marginTop: 16, alignSelf: 'center' }}
+          >
+            <Ionicons name="add-circle-outline" size={24} color="#333" />
+          </TouchableOpacity>
+        </View>
 
         {/* Extra Buttons */}
         <View style={styles.bottomButtons}>

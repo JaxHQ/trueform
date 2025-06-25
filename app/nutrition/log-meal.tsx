@@ -13,8 +13,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-
+import { uploadPhotosToStorage } from '../../lib/uploadPhotos';
 const savedMeals = ['Chicken Bowl 🍗', 'Egg Toast 🥚🍞'];
+
+const userId = '9eaaf752-0f1a-44fa-93a1-387ea322e505'; // TODO: Replace with dynamic user auth ID later
 
 export default function LogMealScreen() {
   const router = useRouter();
@@ -25,7 +27,7 @@ export default function LogMealScreen() {
   // Removed macro state variables
   const [mealDateMode, setMealDateMode] = useState<'today' | 'yesterday' | 'custom'>('today');
   const [customDate, setCustomDate] = useState<Date | null>(null);
-  const [photoUris, setPhotoUris] = useState<string[]>([]);
+  const [localPhotoUris, setLocalPhotoUris] = useState<string[]>([]);
   const [showSavedMeals, setShowSavedMeals] = useState(false);
   const [selectedSavedMeal, setSelectedSavedMeal] = useState<string | null>(null);
 
@@ -37,19 +39,33 @@ export default function LogMealScreen() {
       yest.setDate(now.getDate() - 1);
       return yest.toISOString().split('T')[0];
     }
+    // TODO: Replace this alert with a proper Date Picker modal
     return customDate ? customDate.toISOString().split('T')[0] : now.toISOString().split('T')[0];
   };
 
   const submitForAnalysis = async () => {
     const mealDate = getMealDate();
 
+    let photoUrls: string[] = [];
+    console.log("Uploading these URIs:", localPhotoUris);
+    try {
+      photoUrls = await uploadPhotosToStorage(localPhotoUris, userId);
+      console.log('Photo URLs:', photoUrls);
+      console.log("Photo URLs returned:", photoUrls);
+    } catch (uploadError) {
+      console.error('Error uploading photos:', uploadError);
+    }
+
     const payload = {
-      userId: '9eaaf752-0f1a-44fa-93a1-387ea322e505',
+      userId,
       mealText: description,
       mealDate,
-      mealTime: 'today',
-      photoUrls: photoUris,
+      mealTime: mealDateMode,
+      photoUrlsArray: photoUrls,
     };
+
+    console.log('Sending payload to Make webhook:', payload);
+    console.log("Payload being sent:", payload);
 
     try {
       const response = await fetch('https://hook.eu2.make.com/ri37mnljdnupccenx3p1b2b0374jvt1a', {
@@ -62,18 +78,55 @@ export default function LogMealScreen() {
 
       if (response.ok) {
         const responseData = await response.json();
-        // setGptFeedback(responseData.feedback || 'Thanks! Feedback received.');
+        console.log('Webhook response:', responseData);
+        if (responseData.mealId) {
+          router.push({
+            pathname: '/nutrition/analyze-meal',
+            params: { mealId: responseData.mealId },
+          });
+        } else {
+          Alert.alert('Success', 'Meal submitted, but no ID returned.');
+        }
         Alert.alert('Success', 'Meal submitted for analysis.');
-        router.push({
-          pathname: '/nutrition/analyze-meal',
-          params: { mealId: responseData.mealId },
-        });
       } else {
+        console.error('Webhook error:', response.statusText);
         Alert.alert('Error', 'Failed to submit meal. Try again.');
       }
     } catch (error) {
-      console.error(error);
+      console.error('Network error during webhook POST:', error);
       Alert.alert('Error', 'An error occurred. Please try again.');
+    }
+  };
+
+  // Submit saved meal function moved inside component
+  const submitSavedMeal = async () => {
+    const mealDate = getMealDate();
+    const payload = {
+      userId,
+      mealText: selectedSavedMeal,
+      mealDate,
+      mealTime: mealDateMode,
+      photoUrls: [],
+    };
+
+    try {
+      const response = await fetch('https://hook.eu2.make.com/ri37mnljdnupccenx3p1b2b0374jvt1a', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        Alert.alert('Success', 'Saved meal submitted.');
+        router.push('/nutrition');
+      } else {
+        Alert.alert('Error', 'Failed to submit saved meal.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'An error occurred.');
     }
   };
 
@@ -90,11 +143,12 @@ export default function LogMealScreen() {
 
           const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
+            allowsMultipleSelection: true,
             quality: 0.7,
           });
 
           if (!result.canceled && result.assets?.length > 0) {
-            setPhotoUris(prev => [...prev, result.assets[0].uri]);
+            setLocalPhotoUris(prev => [...prev, ...result.assets.map(asset => asset.uri)]);
             Alert.alert('Photo added!');
           }
         },
@@ -111,11 +165,12 @@ export default function LogMealScreen() {
           const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
+            allowsMultipleSelection: true,
             quality: 0.7,
           });
 
           if (!result.canceled && result.assets?.length > 0) {
-            setPhotoUris(prev => [...prev, result.assets[0].uri]);
+            setLocalPhotoUris(prev => [...prev, ...result.assets.map(asset => asset.uri)]);
             Alert.alert('Photo added!');
           }
         },
@@ -170,7 +225,7 @@ export default function LogMealScreen() {
         </TouchableOpacity>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
-        {photoUris.map((uri, index) => (
+        {localPhotoUris.map((uri, index) => (
           <View key={index} style={{ position: 'relative', marginRight: 8, marginBottom: 8 }}>
             <Image
               source={{ uri }}
@@ -178,7 +233,7 @@ export default function LogMealScreen() {
               resizeMode="cover"
             />
             <TouchableOpacity
-              onPress={() => setPhotoUris(prev => prev.filter((_, i) => i !== index))}
+              onPress={() => setLocalPhotoUris(prev => prev.filter((_, i) => i !== index))}
               style={{
                 position: 'absolute',
                 top: -6,
@@ -200,11 +255,11 @@ export default function LogMealScreen() {
         style={[
           styles.inlineSubmitButton,
           {
-            backgroundColor: description.trim() && photoUris.length > 0 ? '#000' : '#ccc',
+            backgroundColor: description.trim() || localPhotoUris.length > 0 ? '#000' : '#ccc',
           },
         ]}
         onPress={submitForAnalysis}
-        disabled={!description.trim() || photoUris.length === 0}
+        disabled={!description.trim() && localPhotoUris.length === 0}
       >
         <Text style={[styles.inlineSubmitButtonText, { color: '#fff' }]}>
           Submit for Analysis
@@ -225,7 +280,7 @@ export default function LogMealScreen() {
           }}
         >
           <Text style={{ fontSize: 16 }}>
-            Select a saved or recent meal
+            {selectedSavedMeal || 'Select a saved or recent meal'}
           </Text>
         </TouchableOpacity>
         {showSavedMeals && (
@@ -266,10 +321,7 @@ export default function LogMealScreen() {
             alignItems: 'center',
             marginTop: 12,
           }}
-          onPress={() => {
-            Alert.alert('Submit', `Submit saved meal: ${selectedSavedMeal}`);
-            // TODO: Add real submit logic for saved meal
-          }}
+          onPress={submitSavedMeal}
         >
           <Text style={{ color: '#fff', fontSize: 16 }}>Submit Saved Meal</Text>
         </TouchableOpacity>

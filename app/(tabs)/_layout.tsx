@@ -33,21 +33,21 @@ export default function TabLayout() {
           ),
         }}
       />
+       <Tabs.Screen
+        name="nutrition" // (tabs)/nutrition/index.tsx
+        options={{
+          title: 'Nutrition',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="fork.knife" color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="trainer" // (tabs)/trainer/index.tsx
         options={{
           title: 'Trainer',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="figure.walk" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="nutrition" // (tabs)/nutrition/index.tsx
-        options={{
-          title: 'Nutrition',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="fork.knife" color={color} />
           ),
         }}
       />
