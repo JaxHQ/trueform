@@ -2,9 +2,12 @@ import * as FileSystem from 'expo-file-system';
 import { supabase } from './supabase';
 
 const getMimeType = (uri: string): string => {
-  if (uri.endsWith('.jpg') || uri.endsWith('.jpeg')) return 'image/jpeg';
-  if (uri.endsWith('.png')) return 'image/png';
-  return 'application/octet-stream';
+  const lowered = uri.toLowerCase();
+  if (lowered.endsWith('.jpg') || lowered.endsWith('.jpeg')) return 'image/jpeg';
+  if (lowered.endsWith('.png')) return 'image/png';
+  if (lowered.endsWith('.webp')) return 'image/webp';
+  if (lowered.endsWith('.gif')) return 'image/gif';
+  return 'image/jpeg';
 };
 
 export const uploadPhotosToStorage = async (
@@ -15,43 +18,43 @@ export const uploadPhotosToStorage = async (
 
   for (let i = 0; i < photoUris.length; i++) {
     const uri = photoUris[i];
-    const fileName = `${userId}_${Date.now()}_${i}.jpg`;
-    const fileType = getMimeType(uri);
+    const mime = getMimeType(uri);
+    const ext = mime.split('/')[1];
+    const fileName = `${userId}_${Date.now()}_${i}.${ext}`;
+    const path = `user_uploads/${userId}/${fileName}`;
 
     try {
-      const fileBuffer = await FileSystem.readAsStringAsync(uri, {
+      // Read binary data
+      const fileData = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      const byteCharacters = atob(fileBuffer);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: fileType });
+      // Convert base64 to Uint8Array
+      const binary = Uint8Array.from(atob(fileData), (c) => c.charCodeAt(0));
 
-      const { error: uploadError } = await supabase.storage
+      const { error } = await supabase.storage
         .from('meal-photos')
-        .upload(`user_uploads/${userId}/${fileName}`, blob, {
-          contentType: fileType,
-          upsert: true,
+        .upload(path, binary, {
+          contentType: mime,
+          upsert: false,
         });
 
-      if (uploadError) {
-        console.error(`Upload failed for ${fileName}:`, uploadError.message);
+      if (error) {
+        console.error('Upload failed:', error.message);
         continue;
       }
 
       const { data } = supabase.storage
         .from('meal-photos')
-        .getPublicUrl(`user_uploads/${userId}/${fileName}`);
+        .getPublicUrl(path);
 
       if (data?.publicUrl) {
         uploadedUrls.push(data.publicUrl);
+      } else {
+        console.warn('No public URL returned for:', path);
       }
     } catch (err) {
-      console.error('Upload failed:', err);
+      console.error('Upload error:', err);
     }
   }
 
