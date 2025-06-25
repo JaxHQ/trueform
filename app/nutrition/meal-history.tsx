@@ -1,15 +1,59 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../../lib/supabase';
 
-const meals = [
-  { id: '1', time: '8:00 AM', type: 'BREAKFAST', description: 'Oatmeal with berries', calories: 350 },
-  { id: '2', time: '12:30 PM', type: 'LUNCH', description: 'Grilled chicken and salad', calories: 600 },
-  { id: '3', time: '3:00 PM', type: 'SNACK', description: 'Apple, nuts', calories: 250 },
-  { id: '4', time: '7:00 PM', type: 'DINNER', description: 'Salmon, quinoa, vegetables', calories: 750 },
-];
+const formatDate = (d: Date) => {
+  const y = d.getFullYear();
+  const m = ('0' + (d.getMonth() + 1)).slice(-2);
+  const day = ('0' + d.getDate()).slice(-2);
+  return `${y}-${m}-${day}`;
+};
 
 export default function MealHistoryScreen() {
+  const TEST_ID = '9eaaf752-0f1a-44fa-93a1-387ea322e505';
+  const [loading, setLoading] = useState(true);
+  const [meals, setMeals] = useState<any[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const uid = data?.session?.user?.id ?? TEST_ID;
+      setUserId(uid);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from('meal_logs')
+        .select('mealid, meal_date, meal_name, description, protein, carbs, fat, calories, status')
+        .eq('user_id', userId)
+        .eq('meal_date', selectedDate)
+        .order('meal_date', { ascending: false })
+
+      if (error) {
+        console.error('Meal history error:', error.message);
+      } else {
+        setMeals(data || []);
+      }
+      setLoading(false);
+    })();
+  }, [userId, selectedDate]);
+
+  const totalCalories = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -27,54 +71,65 @@ export default function MealHistoryScreen() {
         <TextInput placeholder="Search" style={styles.searchInput} />
       </View>
 
-      <View style={styles.dateRow}>
-        <Ionicons name="chevron-back" size={20} color="black" />
-        <Text style={styles.dateText}>Today</Text>
-        <Ionicons name="chevron-forward" size={20} color="black" />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <TouchableOpacity onPress={() => {
+          const prev = new Date(selectedDate + 'T00:00:00');
+          prev.setDate(prev.getDate() - 1);
+          setSelectedDate(formatDate(prev));
+        }}>
+          <Ionicons name="chevron-back" size={20} />
+        </TouchableOpacity>
+        <Text>{selectedDate}</Text>
+        <TouchableOpacity onPress={() => {
+          const next = new Date(selectedDate + 'T00:00:00');
+          next.setDate(next.getDate() + 1);
+          setSelectedDate(formatDate(next));
+        }}>
+          <Ionicons name="chevron-forward" size={20} />
+        </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={meals}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.mealItem}>
-            <View>
-              <Text style={styles.timeText}>{item.time}</Text>
-            </View>
-            <View style={styles.mealDetails}>
-              <Text style={styles.mealType}>{item.type}</Text>
-              <Text style={styles.description}>{item.description}</Text>
-            </View>
-            <Text style={styles.calories}>{item.calories} kcal</Text>
+      {loading ? (
+        <ActivityIndicator size="large" />
+      ) : (
+        <>
+          <FlatList
+            data={meals}
+            keyExtractor={(item) => item.mealid}
+            renderItem={({ item }) => (
+              <View style={styles.mealItem}>
+                <View>
+                  <Text style={styles.timeText}>{item.meal_date}</Text>
+                </View>
+                <View style={styles.mealDetails}>
+                  <Text style={styles.mealType}>{item.meal_name || item.description}</Text>
+                  <Text style={styles.description}>
+                    P {item.protein}g | C {item.carbs}g | F {item.fat}g
+                  </Text>
+                </View>
+                <Text style={styles.calories}>{item.calories} kcal</Text>
+              </View>
+            )}
+          />
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalCalories}>{totalCalories} kcal</Text>
           </View>
-        )}
-      />
-      <View style={styles.totalRow}>
-        <Text style={styles.totalLabel}>Total:</Text>
-        <Text style={styles.totalCalories}>
-          {meals.reduce((sum, meal) => sum + meal.calories, 0)} kcal
-        </Text>
-      </View>
+        </>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
+  headerTitle: { fontSize: 22, fontWeight: 'bold' },
   searchWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -84,45 +139,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 16,
   },
-  searchInput: {
-    flex: 1,
-    height: 40,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  dateText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  searchInput: { flex: 1, height: 40 },
   mealItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 20,
   },
-  timeText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginRight: 10,
-  },
-  mealDetails: {
-    flex: 1,
-  },
-  mealType: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  description: {
-    color: '#666',
-  },
-  calories: {
-    fontWeight: '600',
-  },
+  timeText: { fontSize: 14, fontWeight: 'bold', marginRight: 10 },
+  mealDetails: { flex: 1 },
+  mealType: { fontWeight: 'bold', fontSize: 16, marginBottom: 2 },
+  description: { color: '#666' },
+  calories: { fontWeight: '600' },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -132,13 +160,6 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     paddingTop: 10,
   },
-  totalLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  totalCalories: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
+  totalLabel: { fontSize: 16, fontWeight: 'bold' },
+  totalCalories: { fontSize: 16, fontWeight: 'bold', color: '#333' },
 });
