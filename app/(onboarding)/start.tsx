@@ -1,14 +1,16 @@
-
-
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function OnboardingStart() {
   const router = useRouter();
+  const [username, setUsername] = useState('');
 
   const handleGetStarted = () => {
-    router.push('/(onboarding)/goals');
+    router.push({
+      pathname: '/(onboarding)/goals',
+      params: { username },
+    });
   };
 
   return (
@@ -17,6 +19,13 @@ export default function OnboardingStart() {
       <Text style={styles.subtitle}>
         Your personalized fitness and nutrition companion
       </Text>
+      <Text style={styles.usernameHint}>Create a username to get started</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your username"
+        value={username}
+        onChangeText={setUsername}
+      />
       <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
         <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>
@@ -42,6 +51,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     color: '#555',
+  },
+  usernameHint: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    width: '100%',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+    fontSize: 16,
   },
   button: {
     backgroundColor: '#000',

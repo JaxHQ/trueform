@@ -12,6 +12,7 @@ export default function HomeScreen() {
   const [totals, setTotals] = useState({ protein: 0, carbs: 0, fat: 0, calories: 0 });
   const [goals, setGoals] = useState({ protein: 0, carbs: 0, fat: 0, calories: 1 });
   const [weight, setWeight] = useState<number | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   const TEST_ID = '9eaaf752-0f1a-44fa-93a1-387ea322e505';
   const getLocalISODate = () => {
@@ -125,18 +126,19 @@ export default function HomeScreen() {
         calories: sum('calories'),
       });
 
-      const { data: user } = await supabase
+      const { data: userData } = await supabase
         .from('users')
-        .select('protein_target, carbs_target, fat_target, calorie_target, weight')
+        .select('protein_target, carbs_target, fat_target, calorie_target, weight, username')
         .eq('user_id', currentUid)
         .single();
 
-      const p = user?.protein_target ?? 0;
-      const c = user?.carbs_target ?? 0;
-      const f = user?.fat_target ?? 0;
-      const cal = user?.calorie_target ?? (p * 4 + c * 4 + f * 9);
+      const p = userData?.protein_target ?? 0;
+      const c = userData?.carbs_target ?? 0;
+      const f = userData?.fat_target ?? 0;
+      const cal = userData?.calorie_target ?? (p * 4 + c * 4 + f * 9);
       setGoals({ protein: p, carbs: c, fat: f, calories: cal });
-      setWeight(user?.weight ?? null);
+      setUser(userData);
+      setWeight(userData?.weight ?? null);
 
       setLoading(false);
     })();
@@ -154,7 +156,7 @@ export default function HomeScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
       <View style={styles.headerRow}>
-        <Text style={styles.greeting}>Hi, Jax 👋</Text>
+        <Text style={styles.greeting}>Hi, {user?.username ?? 'friend'} 👋</Text>
         <View style={styles.achievementBox}>
           <TouchableOpacity onPress={updateWeight}>
             <Text style={styles.achievementText}>{weight ? `${weight}kg` : '--'}</Text>

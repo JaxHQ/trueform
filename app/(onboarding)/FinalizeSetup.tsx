@@ -35,7 +35,7 @@ export default function FinalizeSetup() {
       const { data, error } = await supabase
         .from('users')
         .select(
-          `goal, weight, height, workout_location, experience_level, days_per_week, program_preference, description`
+          `goal, weight, height, workout_location, experience_level, days_per_week, program_preference, description, username`
         )
         .eq('user_id', userId)
         .single();
@@ -55,11 +55,16 @@ export default function FinalizeSetup() {
 
   const handleSubmit = async () => {
     if (!userData) return;
+    Alert.alert(
+      'Please wait',
+      'We are finalizing your plan. This may take 10–20 seconds.'
+    );
     setSubmitting(true);
 
     // Build payload for Make / GPT webhook
     const payload = {
       ...userData,
+      username: userData.username,
       final_comment: extraNotes,
     };
 
@@ -94,7 +99,7 @@ export default function FinalizeSetup() {
       if (error) throw error;
 
       setSubmitting(false);
-      router.replace('/');
+      router.replace('/(onboarding)/onboarding_summary');
     } catch (err: any) {
       setSubmitting(false);
       Alert.alert('Error', err.message || 'Failed to finalize setup.');
@@ -112,6 +117,10 @@ export default function FinalizeSetup() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Review & Finalize</Text>
+
+      <Text style={styles.row}>
+        <Text style={styles.label}>Username: </Text>{userData.username}
+      </Text>
 
       {/* Summary */}
       <View style={styles.card}>
