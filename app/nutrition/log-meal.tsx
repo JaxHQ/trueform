@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { uploadPhotosToStorage } from '../../lib/uploadPhotos';
-const savedMeals = ['Chicken Bowl 🍗', 'Egg Toast 🥚🍞'];
+import { supabase } from '../../lib/supabase';
 
 const userId = '9eaaf752-0f1a-44fa-93a1-387ea322e505'; // TODO: Replace with dynamic user auth ID later
 
@@ -29,7 +29,25 @@ export default function LogMealScreen() {
   const [customDate, setCustomDate] = useState<Date | null>(null);
   const [localPhotoUris, setLocalPhotoUris] = useState<string[]>([]);
   const [showSavedMeals, setShowSavedMeals] = useState(false);
-  const [selectedSavedMeal, setSelectedSavedMeal] = useState<string | null>(null);
+  const [selectedSavedMeal, setSelectedSavedMeal] = useState<any | null>(null);
+  const [savedMeals, setSavedMeals] = useState<any[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await supabase
+        .from('meal_logs')
+        .select('meal_name, protein, carbs, fat, calories')
+        .eq('user_id', userId)
+        .neq('meal_name', null)
+        .order('meal_date', { ascending: false })
+        .limit(50);
+      if (!error && data) {
+        // unique list of recent meal objects by meal_name
+        const uniqueMeals = Array.from(new Map(data.map(item => [item.meal_name, item])).values());
+        setSavedMeals(uniqueMeals);
+      }
+    })();
+  }, []);
 
   const getMealDate = () => {
     const now = new Date();
@@ -110,36 +128,32 @@ export default function LogMealScreen() {
     }
   };
 
-  // Submit saved meal function moved inside component
   const submitSavedMeal = async () => {
+    if (!selectedSavedMeal) return;
+
     const mealDate = getMealDate();
-    const payload = {
-      userId,
-      mealText: selectedSavedMeal,
-      mealDate,
-      mealTime: mealDateMode,
-      photoUrls: [],
-    };
 
-    try {
-      const response = await fetch('https://hook.eu2.make.com/ri37mnljdnupccenx3p1b2b0374jvt1a', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+    // Insert a new completed meal straight into Supabase
+    const { error } = await supabase.from('meal_logs').insert({
+      user_id: userId,
+      meal_date: mealDate,
+      meal_name: selectedSavedMeal.meal_name,
+      feedback: 'Quick saved meal',
+      protein: selectedSavedMeal.protein,
+      carbs: selectedSavedMeal.carbs,
+      fat: selectedSavedMeal.fat,
+      calories: selectedSavedMeal.calories,
+      status: 'complete',
+    });
 
-      if (response.ok) {
-        Alert.alert('Success', 'Saved meal submitted.');
-        router.push('/nutrition');
-      } else {
-        Alert.alert('Error', 'Failed to submit saved meal.');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'An error occurred.');
+    if (error) {
+      Alert.alert('Error', 'Failed to save meal.');
+      console.error('Supabase insert error:', error.message);
+      return;
     }
+
+    // Navigate directly back to Nutrition home
+    router.replace('/nutrition');
   };
 
   const handleAddPhoto = async () => {
@@ -292,7 +306,7 @@ export default function LogMealScreen() {
           }}
         >
           <Text style={{ fontSize: 16 }}>
-            {selectedSavedMeal || 'Select a saved or recent meal'}
+            {selectedSavedMeal?.meal_name || 'Select a saved or recent meal'}
           </Text>
         </TouchableOpacity>
         {showSavedMeals && (
@@ -316,7 +330,7 @@ export default function LogMealScreen() {
                   }}
                   style={{ paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: idx < savedMeals.length - 1 ? 1 : 0, borderColor: '#eee' }}
                 >
-                  <Text>{meal}</Text>
+                  <Text>{meal.meal_name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>

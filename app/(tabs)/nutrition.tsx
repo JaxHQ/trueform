@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -21,12 +21,8 @@ export default function NutritionScreen() {
     fat_goal: 0,
     calories_goal: 0,
   });
-  // helper : returns YYYY-MM-DD in device’s local timezone
-  const getLocalISODate = () => {
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 10);
-  };
+  // helper : returns YYYY-MM-DD in UTC (matches how meal_date is stored)
+  const getISODate = () => new Date().toISOString().slice(0, 10);
   useEffect(() => {
     const fetchUser = async () => {
       const { data, error } = await supabase.auth.getSession();
@@ -48,14 +44,15 @@ export default function NutritionScreen() {
   useEffect(() => {
     if (!userId) return;
 
-    const todayISO = getLocalISODate();
+    const todayISO = getISODate();
 
     const fetchMeals = async () => {
       const { data, error } = await supabase
         .from('meal_logs')
         .select('mealid, meal_name, protein, carbs, fat, calories, status')
         .eq('user_id', userId)
-        .eq('status', 'complete');
+        .eq('status', 'complete')
+        .eq('meal_date', todayISO);
 
       if (error) {
         console.error('Fetch meals error:', error.message);
@@ -170,6 +167,38 @@ export default function NutritionScreen() {
                 <Text style={styles.mealInfo}>
                   Protein: {m.protein}g | Carbs: {m.carbs}g | Fat: {m.fat}g | {m.calories} kcal
                 </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    Alert.alert(
+                      'Delete Meal',
+                      'Are you sure you want to delete this meal?',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Delete',
+                          style: 'destructive',
+                          onPress: async () => {
+                            const { error } = await supabase
+                              .from('meal_logs')
+                              .delete()
+                              .eq('mealid', m.mealid);
+
+                            if (error) {
+                              console.error('Delete error:', error.message);
+                              return;
+                            }
+
+                            setMeals((prev) => prev.filter((meal) => meal.mealid !== m.mealid));
+                          },
+                        },
+                      ],
+                      { cancelable: true }
+                    );
+                  }}
+                  style={{ position: 'absolute', top: 8, right: 8 }}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#666" />
+                </TouchableOpacity>
               </View>
             ))
           )}
@@ -259,6 +288,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
     backgroundColor: '#fff',
+    position: 'relative',
   },
   bottomButtons: {
     flexDirection: 'row',
