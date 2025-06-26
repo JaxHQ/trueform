@@ -103,7 +103,7 @@ export default function ConfirmMealScreen() {
       mealid: meal.mealid ?? mealId,  // ← use real PK
       user_id: meal.user_id ?? null,
       meal_name: meal.meal_name,
-      meal_date: meal.meal_date,
+      meal_date: gptMeal?.meal_date ?? meal.meal_date,
       protein: meal.protein,
       carbs: meal.carbs,
       fat: meal.fat,

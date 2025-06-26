@@ -106,13 +106,17 @@ export default function LogMealScreen() {
 
       if (response.ok) {
         const responseData = await response.json();
+        const encodedPayload = encodeURIComponent(JSON.stringify(responseData));
         const mealId =
           responseData.mealId ??
           responseData.mealid ??
           responseData.MealId ??
           responseData.mealID;
 
-        router.replace({ pathname: '/nutrition/confirm-meal', params: mealId ? { mealId } : { error: 'noMealId' } });
+        router.replace({
+          pathname: '/nutrition/confirm-meal',
+          params: mealId ? { mealId, payload: encodedPayload } : { error: 'noMealId' },
+        });
       } else {
         console.error('Webhook error:', response.statusText);
         router.replace({ pathname: '/nutrition/analyze-meal', params: { error: 'submitFailed' } });
