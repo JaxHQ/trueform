@@ -4,12 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function MyProgramScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
+      <View style={styles.comingSoonOverlay}>
+        <Text style={styles.comingSoonText}>Coming Soon</Text>
+      </View>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Modify Prompt */}
         <View style={styles.card}>
           <Text style={styles.title}>Modify today’s workout?</Text>
           <Text style={styles.subtitle}>Tell me how you’re feeling, and I can adjust.</Text>
-          <TextInput style={styles.input} placeholder="How are you feeling?" />
+          {/* <TextInput style={styles.input} placeholder="How are you feeling?" /> */}
         </View>
 
         {/* Current Program Summary */}
@@ -18,21 +21,21 @@ export default function MyProgramScreen() {
           <View style={styles.innerCard}>
             <Text style={styles.programTitle}>Jackson’s Push/Pull/Legs Split</Text>
             <Text style={styles.programDetails}>Uploaded May 22 • 6 days</Text>
-            <TouchableOpacity style={styles.button}><Text style={styles.buttonText}>View Full Program</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.button}><Text style={styles.buttonText}>Start Workout</Text></TouchableOpacity>
+            {/* <TouchableOpacity style={styles.button}><Text style={styles.buttonText}>View Full Program</Text></TouchableOpacity> */}
+            {/* <TouchableOpacity style={styles.button}><Text style={styles.buttonText}>Start Workout</Text></TouchableOpacity> */}
           </View>
         </View>
 
         {/* Program Options */}
         <Text style={styles.secondaryLabel}>Using your own program</Text>
         <View style={styles.rowButtons}>
-          <TouchableOpacity style={styles.altButton}><Text>My Program</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.altButton}><Text>TrueForm Plan</Text></TouchableOpacity>
+          {/* <TouchableOpacity style={styles.altButton}><Text>My Program</Text></TouchableOpacity> */}
+          {/* <TouchableOpacity style={styles.altButton}><Text>TrueForm Plan</Text></TouchableOpacity> */}
         </View>
 
-        <TouchableOpacity style={styles.fullButton}><Text style={styles.buttonText}>Upload New Program</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.fullButton}><Text style={styles.buttonText}>Edit Current Program</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.fullButton}><Text style={styles.buttonText}>Reset Progress</Text></TouchableOpacity>
+        {/* <TouchableOpacity style={styles.fullButton}><Text style={styles.buttonText}>Upload New Program</Text></TouchableOpacity> */}
+        {/* <TouchableOpacity style={styles.fullButton}><Text style={styles.buttonText}>Edit Current Program</Text></TouchableOpacity> */}
+        {/* <TouchableOpacity style={styles.fullButton}><Text style={styles.buttonText}>Reset Progress</Text></TouchableOpacity> */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -121,5 +124,21 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
     alignItems: 'center',
+  },
+  comingSoonOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    zIndex: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  comingSoonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
   },
 });

@@ -18,6 +18,9 @@ export default function TrainerScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         {/* Status Update Section */}
         <View style={styles.card}>
+          <View style={styles.overlay}>
+            <Text style={styles.overlayText}>Coming Soon</Text>
+          </View>
           <Text style={styles.sectionTitle}>Let us know how you're feeling today</Text>
           <TextInput
             style={[styles.input, { height: 120, textAlignVertical: 'top' }]}
@@ -33,6 +36,9 @@ export default function TrainerScreen() {
 
         {/* Next Workout Section */}
         <View style={styles.card}>
+          <View style={styles.overlay}>
+            <Text style={styles.overlayText}>Coming Soon</Text>
+          </View>
           <Text style={styles.sectionSubTitle}>YOUR NEXT WORKOUT</Text>
           <Text style={styles.workoutTitle}>Upper Body • Day 14</Text>
           <Text style={styles.workoutDetail}>5 exercises</Text>
@@ -45,6 +51,9 @@ export default function TrainerScreen() {
 
         {/* Weekly Breakdown Section */}
         <View style={styles.card}>
+          <View style={styles.overlay}>
+            <Text style={styles.overlayText}>Coming Soon</Text>
+          </View>
           <Text style={styles.sectionSubTitle}>WEEKLY MUSCLE BREAKDOWN</Text>
           <View style={styles.bar} />
           <View style={[styles.bar, { width: '70%' }]} />
@@ -143,5 +152,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 6,
     backgroundColor: '#fff',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    zIndex: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  overlayText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#888',
   },
 });

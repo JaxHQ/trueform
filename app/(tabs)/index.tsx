@@ -195,27 +195,26 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Steps Section */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>STEPS</Text>
-        <Text style={styles.sectionText}>0 of 8,000</Text>
-        <View style={styles.progressBar}></View>
-      </View>
 
       {/* Workout Section */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>TODAY’S WORKOUT</Text>
-        <Text style={styles.sectionText}>You don’t have a workout planned today.</Text>
-        <TouchableOpacity style={styles.blackButton}>
-          <Text style={styles.blackButtonText}>Generate a New Workout</Text>
-        </TouchableOpacity>
-        <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-          <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
-            <Text style={styles.blackButtonText}>Conditioning</Text>
+      <View style={{ position: 'relative' }}>
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>TODAY’S WORKOUT</Text>
+          <Text style={styles.sectionText}>You don’t have a workout planned today.</Text>
+          <TouchableOpacity style={styles.blackButton}>
+            <Text style={styles.blackButtonText}>Generate a New Workout</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
-            <Text style={styles.blackButtonText}>Recovery</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+            <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
+              <Text style={styles.blackButtonText}>Conditioning</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
+              <Text style={styles.blackButtonText}>Recovery</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.overlay}>
+          <Text style={styles.overlayText}>Coming Soon</Text>
         </View>
       </View>
 
@@ -329,5 +328,21 @@ const styles = StyleSheet.create({
   quickActions: {
     flexDirection: 'row',
     gap: 17,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  overlayText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
   },
 });
