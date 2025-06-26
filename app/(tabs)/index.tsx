@@ -127,14 +127,15 @@ export default function HomeScreen() {
 
       const { data: user } = await supabase
         .from('users')
-        .select('protein_target, carbs_target, fat_target, weight')
+        .select('protein_target, carbs_target, fat_target, calorie_target, weight')
         .eq('user_id', currentUid)
         .single();
 
       const p = user?.protein_target ?? 0;
       const c = user?.carbs_target ?? 0;
       const f = user?.fat_target ?? 0;
-      setGoals({ protein: p, carbs: c, fat: f, calories: p * 4 + c * 4 + f * 9 });
+      const cal = user?.calorie_target ?? (p * 4 + c * 4 + f * 9);
+      setGoals({ protein: p, carbs: c, fat: f, calories: cal });
       setWeight(user?.weight ?? null);
 
       setLoading(false);
