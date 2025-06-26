@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, ActivityIndicator, Alert, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import CircularProgress from '../../components/ui/CircularProgress';
 import { supabase } from '../../lib/supabase'; // adjust path if necessary
@@ -20,31 +20,93 @@ export default function HomeScreen() {
     return d.toISOString().slice(0, 10);
   };
 
+  const [uid, setUid] = useState<string>(TEST_ID);
+
+  const updateWeight = () => {
+    Alert.prompt(
+      'Update Weight',
+      'Enter your current body-weight (kg):',
+      async (text) => {
+        const newWeight = parseFloat(text);
+        if (isNaN(newWeight)) return;
+
+        setWeight(newWeight);
+        const today = getLocalISODate();
+
+        /* --- 1. Update current weight in users table --- */
+        const { error: userErr } = await supabase
+          .from('users')
+          .update({ weight: newWeight })
+          .eq('user_id', uid);
+        if (userErr) console.error('users update error:', userErr.message);
+
+        /* --- 2. Check if we already logged weight today --- */
+        const { data: existing, error: fetchErr } = await supabase
+          .from('bodyweight_logs')
+          .select('id')
+          .eq('user_id', uid)
+          .eq('log_date', today)
+          .maybeSingle();
+
+        if (fetchErr) {
+          console.error('bw fetch error:', fetchErr.message);
+          return;
+        }
+
+        if (!existing) {
+          /* ---- No entry yet → INSERT ---- */
+          const { error: insErr } = await supabase
+            .from('bodyweight_logs')
+            .insert({ user_id: uid, weight: newWeight, log_date: today });
+          if (insErr) console.error('bw insert error:', insErr.message);
+          else console.log('Weight logged:', today, newWeight);
+        } else {
+          /* ---- Already logged → ask to overwrite ---- */
+          Alert.alert(
+            'Already logged today',
+            'Overwrite today’s body-weight entry?',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Overwrite',
+                style: 'destructive',
+                onPress: async () => {
+                  const { error: updErr } = await supabase
+                    .from('bodyweight_logs')
+                    .update({ weight: newWeight })
+                    .eq('id', existing.id);
+                  if (updErr) console.error('bw update error:', updErr.message);
+                  else console.log('Weight updated:', today, newWeight);
+                },
+              },
+            ],
+            { cancelable: true }
+          );
+        }
+      },
+      'plain-text',
+      weight ? `${weight}` : ''
+    );
+  };
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getSession();
-      const uid = data?.session?.user?.id ?? TEST_ID;
+      const currentUid = data?.session?.user?.id ?? TEST_ID;
+      setUid(currentUid);
 
       const today = getLocalISODate();
       // Try strict "today" filter first
       let { data: meals, error: mealsError } = await supabase
         .from('meal_logs')
         .select('protein, carbs, fat, calories')
-        .eq('user_id', uid)
+        .eq('user_id', currentUid)
         .eq('meal_date', today)
         .eq('status', 'complete');
 
-      // 💡 DEV fallback: if nothing returned (common in Expo when date format mismatches),
-      // re‑query without the date filter so totals still show while testing.
+      // If nothing returned for today, log a warning (no fallback).
       if (!mealsError && (meals?.length ?? 0) === 0) {
-        console.log('No meals for exact date — falling back to all complete meals (DEV mode).');
-        const { data: allMeals, error: allErr } = await supabase
-          .from('meal_logs')
-          .select('protein, carbs, fat, calories')
-          .eq('user_id', uid)
-          .eq('status', 'complete');
-
-        if (!allErr) meals = allMeals;
+        console.log('No meals for exact date — skipping totals (no fallback)');
       }
 
       if (mealsError) {
@@ -66,7 +128,7 @@ export default function HomeScreen() {
       const { data: user } = await supabase
         .from('users')
         .select('protein_target, carbs_target, fat_target, weight')
-        .eq('user_id', uid)
+        .eq('user_id', currentUid)
         .single();
 
       const p = user?.protein_target ?? 0;
@@ -93,7 +155,7 @@ export default function HomeScreen() {
       <View style={styles.headerRow}>
         <Text style={styles.greeting}>Hi, Jax 👋</Text>
         <View style={styles.achievementBox}>
-          <TouchableOpacity onPress={() => console.log('Weight pressed')}>
+          <TouchableOpacity onPress={updateWeight}>
             <Text style={styles.achievementText}>{weight ? `${weight}kg` : '--'}</Text>
           </TouchableOpacity>
           <Text style={styles.achievementLabel}>Bodyweight</Text>
@@ -104,8 +166,8 @@ export default function HomeScreen() {
       <View style={styles.card}>
         <View style={styles.ringPlaceholder}>
           <CircularProgress
-            progress={Math.min(totals.calories / goals.calories, 1)}
-            label={`${totals.calories} / ${goals.calories}`}
+            progress={goals.calories ? Math.min(totals.calories / goals.calories, 1) : 0}
+            label={`${totals.calories} / ${goals.calories} kcal`}
           />
         </View>
         <View style={styles.macrosRow}>
@@ -156,6 +218,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
     </ScrollView>
   );
 }

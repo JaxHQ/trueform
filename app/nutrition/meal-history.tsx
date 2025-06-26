@@ -24,6 +24,7 @@ export default function MealHistoryScreen() {
   const [meals, setMeals] = useState<any[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
+  const [bodyweight, setBodyweight] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -41,13 +42,29 @@ export default function MealHistoryScreen() {
         .select('mealid, meal_date, meal_name, description, protein, carbs, fat, calories, status')
         .eq('user_id', userId)
         .eq('meal_date', selectedDate)
-        .order('meal_date', { ascending: false })
+        .order('meal_date', { ascending: false });
 
       if (error) {
         console.error('Meal history error:', error.message);
       } else {
         setMeals(data || []);
       }
+
+      // Fetch bodyweight for the selected date and user
+      const { data: bwData, error: bwError } = await supabase
+        .from('bodyweight_logs')
+        .select('weight')
+        .eq('user_id', userId)
+        .eq('log_date', selectedDate)
+        .order('created_at', { ascending: false })   // newest first
+        .limit(1)
+        .maybeSingle();
+      if (bwError) {
+        console.error('Body‑weight fetch error:', bwError.message);
+      } else {
+        setBodyweight(bwData?.weight ?? null);
+      }
+
       setLoading(false);
     })();
   }, [userId, selectedDate]);
@@ -93,6 +110,13 @@ export default function MealHistoryScreen() {
         <ActivityIndicator size="large" />
       ) : (
         <>
+          {bodyweight && (
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
+                📉 Bodyweight: {bodyweight} kg
+              </Text>
+            </View>
+          )}
           <FlatList
             data={meals}
             keyExtractor={(item) => item.mealid}
