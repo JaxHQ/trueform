@@ -96,6 +96,7 @@ export default function ConfirmMealScreen() {
   // ───────────────────────────────── handlers
   const handleConfirm = async () => {
     if (!meal) return;
+    console.log('✅ confirming with meal_date =', meal.meal_date);
 
     // Build the full row we want stored
     const payload = {
