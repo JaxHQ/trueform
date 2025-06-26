@@ -5,21 +5,38 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 
 interface MealRow {
-  id: string;
+  mealid: string;          // primary key in DB
   protein: number;
   carbs: number;
   fat: number;
   calories: number;
   feedback: string;
   status: string;
+  meal_date?: string;
+  meal_name?: string;
+  user_id?: string;
 }
 
 export default function ConfirmMealScreen() {
-  const { mealId } = useLocalSearchParams<{ mealId: string }>();
+  const { mealId, payload } = useLocalSearchParams<{
+    mealId: string;
+    payload?: string;   // URL‑encoded JSON from GPT
+  }>();
   const router = useRouter();
 
   const [meal, setMeal] = useState<MealRow | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // helper: parse & memoise GPT payload
+  const gptMeal = React.useMemo<Partial<MealRow> | null>(() => {
+    if (!payload) return null;
+    try {
+      return JSON.parse(decodeURIComponent(payload));
+    } catch (err) {
+      console.warn('[ConfirmMeal] failed to parse payload param:', err);
+      return null;
+    }
+  }, [payload]);
 
   // ───────────────────────────────── fetch meal row
   useEffect(() => {
@@ -32,30 +49,78 @@ export default function ConfirmMealScreen() {
         .single();
 
       if (error) console.error('Error fetching meal:', error.message);
-      setMeal(data as MealRow | null);
+
+      // ----- normalise GPT keys (mealId -> mealid) -----
+      let normalised: Partial<MealRow> | null = null;
+      if (gptMeal) {
+        const tmp: any = { ...gptMeal };
+        if (tmp.mealId && !tmp.mealid) tmp.mealid = tmp.mealId; // camel → snake mismatch
+        normalised = tmp as Partial<MealRow>;
+      }
+
+      // ----- merge precedence: DB row ⊆ GPT payload -----
+      let merged: MealRow | null = null;
+      if (data) merged = { ...(data as MealRow) };
+
+      if (normalised) {
+        if (!merged) {
+          // No row yet – create a shell from GPT payload
+          merged = {
+            mealid: normalised.mealid ?? mealId,
+            protein: normalised.protein ?? 0,
+            carbs: normalised.carbs ?? 0,
+            fat: normalised.fat ?? 0,
+            calories: normalised.calories ?? 0,
+            feedback: normalised.feedback ?? '',
+            status: normalised.status ?? 'computed',
+            meal_name: normalised.meal_name ?? '',
+            meal_date: normalised.meal_date,
+            user_id: normalised.user_id,
+          };
+        } else {
+          // Row exists – overlay GPT values
+          merged = { ...merged, ...normalised };
+        }
+        console.log('👀 merged row =', merged);
+      } else {
+        console.log('👀 fetched row =', data);
+      }
+
+      setMeal(merged);
       setLoading(false);
     };
 
     fetchMealData();
-  }, [mealId]);
+  }, [mealId, gptMeal]);
 
   // ───────────────────────────────── handlers
   const handleConfirm = async () => {
-    if (!mealId) return;
+    if (!meal) return;
 
-    // 1️⃣ mark the row complete
+    // Build the full row we want stored
+    const payload = {
+      mealid: meal.mealid ?? mealId,  // ← use real PK
+      user_id: meal.user_id ?? null,
+      meal_name: meal.meal_name,
+      meal_date: meal.meal_date,
+      protein: meal.protein,
+      carbs: meal.carbs,
+      fat: meal.fat,
+      calories: meal.calories,
+      feedback: meal.feedback,
+      status: 'complete',
+    };
+
     const { error } = await supabase
       .from('meal_logs')
-      .update({ status: 'complete' })     // ← or 'logged', whichever label you prefer
-      .eq('mealid', mealId);
+      .upsert(payload, { onConflict: 'mealid' });
 
     if (error) {
       Alert.alert('Error', 'Could not save meal, please try again.');
-      console.error(error.message);
+      console.error('Supabase upsert error:', error.message);
       return;
     }
 
-    // 3️⃣ go back to nutrition home
     router.replace('/nutrition');
   };
 
@@ -85,6 +150,10 @@ export default function ConfirmMealScreen() {
   return (
     <View style={{ flex: 1, padding: 24, backgroundColor: '#fff' }}>
       <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' }}>Confirm Meal</Text>
+
+      <Text style={{ textAlign: 'center', marginBottom: 4 }}>
+        {meal.meal_name} • {meal.meal_date}
+      </Text>
 
       {/* macro boxes */}
       <View style={{ padding: 16, borderWidth: 1, borderRadius: 12, borderColor: '#ddd', marginBottom: 16, width: '110%', height: 120 }}>

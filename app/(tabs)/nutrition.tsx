@@ -1,55 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../../lib/supabase'; // adjust if path differs
+import { supabase } from '../../lib/supabase';   // adjust if path differs
 import CircularProgress from '../../components/ui/CircularProgress';
+
+// ————————————————————————————————
+// Helper: YYYY-MM-DD in the device’s **local** timezone
+// ————————————————————————————————
+const getLocalDateString = () => new Date().toLocaleDateString('en-CA');
 
 export default function NutritionScreen() {
   const router = useRouter();
 
-  // state for today's meals and totals
-  const [loading, setLoading] = useState(true);
-  const [meals, setMeals] = useState<any[]>([]);
-  const [totals, setTotals] = useState({ protein: 0, carbs: 0, fat: 0, calories: 0 });
-  const [userId, setUserId] = useState<string | null>(null);
-  const [goals, setGoals] = useState({
+  // ─── local state ──────────────────────────────────────────────────────────────
+  const [loading,   setLoading]   = useState(true);
+  const [meals,     setMeals]     = useState<any[]>([]);
+  const [totals,    setTotals]    = useState({ protein: 0, carbs: 0, fat: 0, calories: 0 });
+  const [userId,    setUserId]    = useState<string | null>(null);
+  const [goals,     setGoals]     = useState({
     protein_goal: 0,
-    carbs_goal: 0,
-    fat_goal: 0,
+    carbs_goal:   0,
+    fat_goal:     0,
     calories_goal: 0,
   });
-  // helper : returns YYYY-MM-DD in UTC (matches how meal_date is stored)
-  const getISODate = () => new Date().toISOString().slice(0, 10);
+
+  // ─── fetch current user (or fallback to test) ────────────────────────────────
   useEffect(() => {
-    const fetchUser = async () => {
+    (async () => {
       const { data, error } = await supabase.auth.getSession();
-      const userId = data?.session?.user?.id;
+      const uid = data?.session?.user?.id;
 
-      if (error || !userId) {
-        console.error('Auth error:', error?.message || 'No user session found (using test ID)');
-        // 🔧 DEV-ONLY fallback so Nutrition screen works in Expo Go without auth:
+      if (error || !uid) {
+        console.warn('No auth session found — using test ID');
         setUserId('9eaaf752-0f1a-44fa-93a1-387ea322e505');
-        return;
+      } else {
+        setUserId(uid);
       }
-
-      setUserId(userId);
-    };
-
-    fetchUser();
+    })();
   }, []);
 
+  // ─── fetch today’s meals + user goals whenever userId changes ────────────────
   useEffect(() => {
     if (!userId) return;
 
-    const todayISO = getISODate();
+    const todayISO = getLocalDateString();
 
+    // today's meals
     const fetchMeals = async () => {
       const { data, error } = await supabase
         .from('meal_logs')
-        .select('mealid, meal_name, protein, carbs, fat, calories, status')
+        .select('mealid, meal_name, protein, carbs, fat, calories, status, meal_date')
         .eq('user_id', userId)
         .eq('status', 'complete')
         .eq('meal_date', todayISO);
@@ -60,26 +71,25 @@ export default function NutritionScreen() {
         return;
       }
 
-      console.log('Fetched meals:', data);
-
       setMeals(data || []);
 
-      const sum = (fld: 'protein'|'carbs'|'fat'|'calories') =>
-        data?.reduce((s: number, m: any) => s + (m[fld] ?? 0), 0) ?? 0;
+      const sum = (k: 'protein' | 'carbs' | 'fat' | 'calories') =>
+        data?.reduce((t, m) => t + (m[k] ?? 0), 0) ?? 0;
 
       setTotals({
-        protein: sum('protein'),
-        carbs: sum('carbs'),
-        fat: sum('fat'),
-        calories: sum('calories'),
+        protein:   sum('protein'),
+        carbs:     sum('carbs'),
+        fat:       sum('fat'),
+        calories:  sum('calories'),
       });
       setLoading(false);
     };
 
+    // goals
     const fetchGoals = async () => {
       const { data, error } = await supabase
         .from('users')
-        .select('protein_target, carbs_target, fat_target, weight')
+        .select('protein_target, carbs_target, fat_target')
         .eq('user_id', userId)
         .single();
 
@@ -87,10 +97,13 @@ export default function NutritionScreen() {
         console.error('Fetch goals error:', error.message);
       } else if (data) {
         setGoals({
-          protein_goal: data.protein_target ?? 0,
-          carbs_goal: data.carbs_target ?? 0,
-          fat_goal: data.fat_target ?? 0,
-          calories_goal: (data.protein_target ?? 0) * 4 + (data.carbs_target ?? 0) * 4 + (data.fat_target ?? 0) * 9,
+          protein_goal:  data.protein_target ?? 0,
+          carbs_goal:    data.carbs_target   ?? 0,
+          fat_goal:      data.fat_target     ?? 0,
+          calories_goal:
+            (data.protein_target ?? 0) * 4 +
+            (data.carbs_target   ?? 0) * 4 +
+            (data.fat_target     ?? 0) * 9,
         });
       }
     };
@@ -99,9 +112,12 @@ export default function NutritionScreen() {
     fetchGoals();
   }, [userId]);
 
+  // ─── UI ───────────────────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
+
+        {/* Calorie Ring */}
         <View style={{ alignItems: 'center', marginBottom: 24 }}>
           <CircularProgress
             progress={totals.calories / (goals.calories_goal || 1)}
@@ -109,93 +125,76 @@ export default function NutritionScreen() {
           />
         </View>
 
+        {/* Macro Card */}
         <View style={styles.card}>
           <Text style={styles.title}>MACROS</Text>
 
-          <Text style={styles.macroLabel}>Protein</Text>
-          <Text style={{ fontSize: 12, color: '#333', marginBottom: 4, textAlign: 'center' }}>
-            {totals.protein}g / {goals.protein_goal}g
-          </Text>
-          <View style={styles.barBackground}>
-            <View style={[styles.barFill, { flex: totals.protein, backgroundColor: '#7a9' }]} />
-            <View style={{ flex: Math.max(goals.protein_goal - totals.protein, 0) }} />
-          </View>
-
-          <Text style={styles.macroLabel}>Carbs</Text>
-          <Text style={{ fontSize: 12, color: '#333', marginBottom: 4, textAlign: 'center' }}>
-            {totals.carbs}g / {goals.carbs_goal}g
-          </Text>
-          <View style={styles.barBackground}>
-            <View style={[styles.barFill, { flex: totals.carbs, backgroundColor: '#79c' }]} />
-            <View style={{ flex: Math.max(goals.carbs_goal - totals.carbs, 0) }} />
-          </View>
-
-          <Text style={styles.macroLabel}>Fat</Text>
-          <Text style={{ fontSize: 12, color: '#333', marginBottom: 4, textAlign: 'center' }}>
-            {totals.fat}g / {goals.fat_goal}g
-          </Text>
-          <View style={styles.barBackground}>
-            <View style={[styles.barFill, { flex: totals.fat, backgroundColor: '#e9a' }]} />
-            <View style={{ flex: Math.max(goals.fat_goal - totals.fat, 0) }} />
-          </View>
+          {(['Protein', 'Carbs', 'Fat'] as const).map((lbl, idx) => {
+            const v   = totals[lbl.toLowerCase() as keyof typeof totals] as number;
+            const tgt = goals[`${lbl.toLowerCase()}_goal` as keyof typeof goals] as number;
+            const colors = ['#7a9', '#79c', '#e9a'];
+            return (
+              <View key={lbl} style={{ marginBottom: 12 }}>
+                <Text style={styles.macroLabel}>{lbl}</Text>
+                <Text style={styles.macroDetail}>{v}g / {tgt}g</Text>
+                <View style={styles.barBackground}>
+                  <View style={[styles.barFill, { flex: v, backgroundColor: colors[idx] }]} />
+                  <View style={{ flex: Math.max(tgt - v, 0) }} />
+                </View>
+              </View>
+            );
+          })}
         </View>
 
-
+        {/* Today's Meals */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.title}>TODAY'S MEALS</Text>
             <TouchableOpacity
               onPress={() => router.push('/nutrition/log-meal')}
-              style={{ backgroundColor: '#000', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }}
+              style={styles.addBtn}
             >
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>+ Add Meal</Text>
+              <Text style={styles.addBtnTxt}>+ Add Meal</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
-          {loading && (
-            <ActivityIndicator size="small" style={{ marginTop: 12 }} />
-          )}
+
+          {loading && <ActivityIndicator size="small" style={{ marginTop: 12 }} />}
 
           {!loading && meals.length === 0 && (
             <Text style={styles.mealPlaceholder}>No meals logged yet today.</Text>
           )}
 
           {!loading && meals.length > 0 && (
-            meals.map((m) => (
+            meals.map(m => (
               <View key={m.mealid} style={styles.mealCard}>
                 <Text style={styles.mealTitle}>{m.meal_name || 'Meal'}</Text>
                 <Text style={styles.mealInfo}>
-                  Protein: {m.protein}g | Carbs: {m.carbs}g | Fat: {m.fat}g | {m.calories} kcal
+                  Protein: {m.protein}g · Carbs: {m.carbs}g · Fat: {m.fat}g · {m.calories} kcal
                 </Text>
+
+                {/* delete button */}
                 <TouchableOpacity
-                  onPress={() => {
-                    Alert.alert(
-                      'Delete Meal',
-                      'Are you sure you want to delete this meal?',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Delete',
-                          style: 'destructive',
-                          onPress: async () => {
-                            const { error } = await supabase
-                              .from('meal_logs')
-                              .delete()
-                              .eq('mealid', m.mealid);
-
-                            if (error) {
-                              console.error('Delete error:', error.message);
-                              return;
-                            }
-
-                            setMeals((prev) => prev.filter((meal) => meal.mealid !== m.mealid));
-                          },
+                  onPress={() => Alert.alert(
+                    'Delete Meal',
+                    'Are you sure you want to delete this meal?',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: async () => {
+                          const { error } = await supabase
+                            .from('meal_logs')
+                            .delete()
+                            .eq('mealid', m.mealid);
+                          if (!error) setMeals(prev => prev.filter(x => x.mealid !== m.mealid));
+                          else console.error('Delete error:', error.message);
                         },
-                      ],
-                      { cancelable: true }
-                    );
-                  }}
-                  style={{ position: 'absolute', top: 8, right: 8 }}
+                      },
+                    ]
+                  )}
+                  style={styles.trashBtn}
                 >
                   <Ionicons name="trash-outline" size={18} color="#666" />
                 </TouchableOpacity>
@@ -205,9 +204,9 @@ export default function NutritionScreen() {
 
           <TouchableOpacity
             onPress={() => router.push('/nutrition/meal-history')}
-            style={{ borderWidth: 1, borderColor: '#000', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, alignSelf: 'center', marginTop: 12 }}
+            style={styles.histBtn}
           >
-            <Text style={{ color: '#000', fontWeight: 'bold' }}>Meal History</Text>
+            <Text style={styles.histTxt}>Meal History</Text>
           </TouchableOpacity>
         </View>
 
@@ -216,16 +215,14 @@ export default function NutritionScreen() {
   );
 }
 
+/* ───────────── styles ───────────── */
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  safeArea: { flex: 1, backgroundColor: '#fff' },
   container: {
     padding: 16,
-    backgroundColor: '#fff',
     alignItems: 'center',
     minHeight: Dimensions.get('window').height,
+    backgroundColor: '#fff',
     paddingTop: 32,
   },
   card: {
@@ -237,50 +234,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: '#fefefe',
   },
-  title: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#ddd',
-    marginBottom: 12,
-  },
-  barBackground: {
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-    overflow: 'hidden',
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  barFill: {
-    height: '100%',
-  },
-  macroRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  macroLabel: {
-    textAlign: 'center',
-    fontSize: 12,
-  },
-  mealTitle: {
-    fontWeight: '900',
-    marginBottom: 4,
-    fontSize: 16,
-  },
-  mealInfo: {
-    fontSize: 12,
-    color: '#666',
-  },
-  mealPlaceholder: {
-    textAlign: 'center',
-    color: '#999',
-    fontSize: 28,
-    marginTop: 20,
-  },
+  title: { fontWeight: 'bold', fontSize: 16, marginBottom: 8 },
+  macroLabel: { textAlign: 'center', fontSize: 12, fontWeight: '600' },
+  macroDetail: { textAlign: 'center', fontSize: 12, marginBottom: 4, color: '#333' },
+  barBackground: { height: 16, borderRadius: 8, backgroundColor: '#eee', flexDirection: 'row', overflow: 'hidden' },
+  barFill: { height: '100%' },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  addBtn: { backgroundColor: '#000', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
+  addBtnTxt: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
+  divider: { height: 1, backgroundColor: '#ddd', marginBottom: 12 },
+  mealPlaceholder: { textAlign: 'center', color: '#999', fontSize: 16, marginTop: 20 },
   mealCard: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -290,27 +253,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     position: 'relative',
   },
-  bottomButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-  secondaryButton: {
+  mealTitle: { fontWeight: '900', marginBottom: 4, fontSize: 16 },
+  mealInfo: { fontSize: 12, color: '#666' },
+  trashBtn: { position: 'absolute', top: 8, right: 8 },
+  histBtn: {
+    alignSelf: 'center',
     borderWidth: 1,
     borderColor: '#000',
-    paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 8,
-    width: '45%',
-    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginTop: 12,
   },
-  secondaryText: {
-    fontWeight: '600',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
+  histTxt: { color: '#000', fontWeight: 'bold' },
 });
