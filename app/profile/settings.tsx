@@ -1,24 +1,22 @@
 // app/profile/settings.tsx
 import React from 'react';
-import { View, Text, Switch, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, Switch, StyleSheet, SafeAreaView } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
 export default function Settings() {
+  const router = useRouter();
+
   // Example toggles (these could be tied to AsyncStorage or Supabase columns)
   const [notifications, setNotifications] = React.useState(true);
   const [darkMode, setDarkMode] = React.useState(false);
-  const router = useRouter();
 
   return (
-    <>
+    <SafeAreaView style={styles.safeArea}>
       {/* Optional Expo-router header */}
       <Stack.Screen options={{ title: 'Settings' }} />
+      <Text onPress={() => router.back()} style={styles.backButton}>← Back</Text>
 
-      <SafeAreaView style={styles.container}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
-
+      <View style={styles.container}>
         <Text style={styles.sectionTitle}>Preferences</Text>
 
         {/* Notifications toggle */}
@@ -40,39 +38,54 @@ export default function Settings() {
         </View>
 
         {/* Add more settings rows here */}
-      </SafeAreaView>
-    </>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
   container: {
     flex: 1,
-    padding: 24,
-    paddingTop: 48,
-    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 40,
+    backgroundColor: '#f9f9f9',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: 16,
+    marginBottom: 20,
+    color: '#333',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   label: {
-    fontSize: 16,
+    fontSize: 17,
+    fontWeight: '500',
+    color: '#222',
   },
   backButton: {
-    marginBottom: 16,
-  },
-  backText: {
     fontSize: 16,
     color: '#007AFF',
+    marginBottom: 20,
+    paddingTop: 12,
+    paddingLeft: 8,
+    alignSelf: 'flex-start',
   },
 });

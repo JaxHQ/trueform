@@ -59,7 +59,7 @@ export default function OnboardingWorkout() {
       return;
     }
 
-    router.push('/(onboarding)/nutrition');
+    router.push('/(onboarding)/onboarding_nutrition');
   };
 
   const Pill = ({

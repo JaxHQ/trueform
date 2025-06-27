@@ -39,7 +39,7 @@ export default function OnboardingStats() {
       return;
     }
 
-    router.push('/(onboarding)/workout');
+    router.push('/(onboarding)/onboarding_workout');
   };
 
   return (

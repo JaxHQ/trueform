@@ -1,16 +1,98 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  Dimensions,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Dimensions, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ProfileScreen() {
   const router = useRouter();
 
+  // ────── STATE ──────
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<any | null>(null);
+
+  // ────── LOGOUT ──────
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.replace('/(auth)/login');
   };
+
+  // ────── FETCH USER ──────
+  useEffect(() => {
+    const fetchUser = async () => {
+      // grab auth session (fallback to test uid in Expo Go)
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const uid =
+        session?.user.id ?? '9eaaf752-0f1a-44fa-93a1-387ea322e505';
+
+      const { data, error } = await supabase
+        .from('users')
+        .select(
+          `
+            username,
+            nutrition_goal,
+            protein_target,
+            carbs_target,
+            fat_target,
+            calorie_target,
+            days_per_week,
+            workout_location,
+            experience_level,
+            targetWeight,
+            weight
+          `
+        )
+        .eq('user_id', uid)
+        .single();
+
+      if (error) console.error(error.message);
+      setUserData(data);
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, []);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.center}>
+        <ActivityIndicator size="large" />
+      </SafeAreaView>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <SafeAreaView style={styles.center}>
+        <Text>Couldn’t load profile.</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const {
+    username,
+    nutrition_goal,
+    protein_target,
+    carbs_target,
+    fat_target,
+    calorie_target,
+    days_per_week,
+    workout_location,
+    experience_level,
+    targetWeight,
+    weight,
+  } = userData;
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -19,34 +101,47 @@ export default function ProfileScreen() {
         <View style={styles.headerCard}>
           <View style={styles.avatarPlaceholder} />
           <Text style={styles.welcome}>Welcome back!</Text>
-          <Text style={styles.name}>Jackson</Text>
+          <Text style={styles.name}>{username ?? 'Friend'}</Text>
         </View>
 
         {/* Goal Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Your Goal</Text>
-            <TouchableOpacity onPress={() => {}}>
-              <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
-            </TouchableOpacity>
           </View>
-          <Text style={styles.cardText}>Gain 4 kg of muscle</Text>
-          <Text style={styles.cardText}>Training 5 days/week</Text>
-          <Text style={styles.cardText}>3,000 calories/day</Text>
-          <Text style={styles.cardText}>Week 4 of 12</Text>
+          <Text style={styles.cardText}>{nutrition_goal ?? '—'}</Text>
+          {targetWeight && (
+            <Text style={styles.cardText}>
+              Target weight: {targetWeight} kg
+            </Text>
+          )}
+          {days_per_week && (
+            <Text style={styles.cardText}>
+              Training {days_per_week} day(s)/week
+            </Text>
+          )}
+          {calorie_target && (
+            <Text style={styles.cardText}>
+              {calorie_target} calories / day
+            </Text>
+          )}
         </View>
 
         {/* Preferences Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Preferences</Text>
-            <TouchableOpacity onPress={() => {}}>
-              <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
-            </TouchableOpacity>
           </View>
-          <Text style={styles.cardText}>Location: Gym</Text>
-          <Text style={styles.cardText}>Recovery & Conditioning: ON</Text>
-          <Text style={styles.cardText}>Injuries: Back tightness</Text>
+          <Text style={styles.cardText}>
+            Location: {workout_location ?? '—'}
+          </Text>
+          <Text style={styles.cardText}>
+            Experience: {experience_level ?? '—'}
+          </Text>
+          <Text style={styles.cardText}>
+            Macros: P{protein_target ?? '—'} / C{carbs_target ?? '—'} / F
+            {fat_target ?? '—'}
+          </Text>
         </View>
 
         {/* Footer Actions */}
@@ -60,7 +155,10 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
           <View style={{ flex: 1, marginHorizontal: 4 }}>
-            <TouchableOpacity style={styles.sleekButton} onPress={handleLogout}>
+            <TouchableOpacity
+              style={styles.sleekButton}
+              onPress={handleLogout}
+            >
               <Text style={styles.sleekButtonText}>Log Out</Text>
             </TouchableOpacity>
           </View>
@@ -71,9 +169,14 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     padding: 16,
-    paddingTop: 48, // 👈 shifts everything down
+    paddingTop: 48,
     backgroundColor: '#fff',
     alignItems: 'center',
     flexGrow: 1,
@@ -97,10 +200,6 @@ const styles = StyleSheet.create({
   welcome: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  xp: {
-    fontSize: 14,
-    color: '#666',
   },
   name: {
     fontSize: 16,
@@ -131,14 +230,8 @@ const styles = StyleSheet.create({
     color: '#444',
     marginBottom: 4,
   },
-  editButtonWrapper: {
-    marginTop: 12,
-    alignItems: 'center',
-    width: '100%',
-  },
   footerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     width: '100%',
     marginTop: 16,
     gap: 8,

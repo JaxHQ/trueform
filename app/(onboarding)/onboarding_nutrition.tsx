@@ -7,6 +7,10 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
@@ -20,10 +24,11 @@ export default function OnboardingNutrition() {
   const [tracking, setTracking] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [extraDetails, setExtraDetails] = useState('');
+  const [targetWeight, setTargetWeight] = useState('');
 
   const saveAndFinish = async () => {
-    if (!goal || !tracking) {
-      Alert.alert('Missing info', 'Please select both goal and tracking preference.');
+    if (!goal || !tracking || !targetWeight) {
+      Alert.alert('Missing info', 'Please select goal, tracking preference, and enter target weight.');
       return;
     }
 
@@ -46,6 +51,7 @@ export default function OnboardingNutrition() {
         tracking_style: tracking,
         onboarding_complete: true,
         description: extraDetails,
+        targetWeight: targetWeight ? parseInt(targetWeight) : null,
       })
       .eq('user_id', userId);
 
@@ -80,54 +86,70 @@ export default function OnboardingNutrition() {
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Nutrition Setup</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Nutrition Setup</Text>
 
-      <Text style={styles.section}>What is your primary goal?</Text>
-      <View style={styles.row}>
-        {GOALS.map((opt) => (
-          <Pill
-            key={opt}
-            label={opt}
-            selected={goal === opt}
-            onPress={() => setGoal(opt)}
+          <Text style={styles.section}>What is your primary goal?</Text>
+          <View style={styles.row}>
+            {GOALS.map((opt) => (
+              <Pill
+                key={opt}
+                label={opt}
+                selected={goal === opt}
+                onPress={() => setGoal(opt)}
+              />
+            ))}
+          </View>
+
+          <Text style={styles.section}>How do you want to approach food?</Text>
+          <View style={styles.row}>
+            {TRACKING.map((opt) => (
+              <Pill
+                key={opt}
+                label={opt}
+                selected={tracking === opt}
+                onPress={() => setTracking(opt)}
+              />
+            ))}
+          </View>
+
+          <Text style={styles.section}>Anything else you'd like us to know?</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Additional info about your goals"
+            value={extraDetails}
+            onChangeText={setExtraDetails}
+            multiline
           />
-        ))}
-      </View>
 
-      <Text style={styles.section}>How do you want to approach food?</Text>
-      <View style={styles.row}>
-        {TRACKING.map((opt) => (
-          <Pill
-            key={opt}
-            label={opt}
-            selected={tracking === opt}
-            onPress={() => setTracking(opt)}
+          <Text style={styles.section}>Target Weight (kg)</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="e.g. 75"
+            keyboardType="numeric"
+            value={targetWeight}
+            onChangeText={setTargetWeight}
           />
-        ))}
-      </View>
 
-      <Text style={styles.section}>Anything else you'd like us to know?</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder="Additional info about your goals"
-        value={extraDetails}
-        onChangeText={setExtraDetails}
-        multiline
-      />
-
-      <TouchableOpacity
-        style={[styles.button, !(goal && tracking) && { opacity: 0.4 }]}
-        disabled={loading || !(goal && tracking)}
-        onPress={saveAndFinish}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Finish Setup</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+          <TouchableOpacity
+            style={[styles.button, !(goal && tracking && targetWeight) && { opacity: 0.4 }]}
+            disabled={loading || !(goal && tracking && targetWeight)}
+            onPress={saveAndFinish}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Finish Setup</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

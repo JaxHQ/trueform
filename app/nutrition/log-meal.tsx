@@ -19,7 +19,7 @@ import { uploadPhotosToStorage } from '../../lib/uploadPhotos';
 import { supabase } from '../../lib/supabase';
 import * as Localization from 'expo-localization';
 
-const userId = '9eaaf752-0f1a-44fa-93a1-387ea322e505';
+// Removed hardcoded userId
 
 // Returns YYYY-MM-DD in the device’s LOCAL calendar day
 const getLocalDateString = (d: Date = new Date()) => {
@@ -31,6 +31,16 @@ const getLocalDateString = (d: Date = new Date()) => {
 
 export default function LogMealScreen() {
   const router = useRouter();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user?.id;
+      setUserId(uid ?? '9eaaf752-0f1a-44fa-93a1-387ea322e505'); // fallback for Expo Go testing
+    })();
+  }, []);
+
   const [description, setDescription] = useState('');
   const [mealDateMode, setMealDateMode] = useState<'today' | 'yesterday' | 'custom'>('today');
   const [customDate, setCustomDate] = useState<Date | null>(null);
@@ -53,7 +63,7 @@ export default function LogMealScreen() {
         setSavedMeals(uniqueMeals);
       }
     })();
-  }, []);
+  }, [userId]);
 
   const getMealDate = () => {
     if (mealDateMode === 'today') return getLocalDateString();
@@ -66,6 +76,11 @@ export default function LogMealScreen() {
   };
 
   const submitForAnalysis = async () => {
+    if (!userId) {
+      Alert.alert('Not signed in', 'Please log in first.');
+      return;
+    }
+
     const mealDate = getMealDate();
 
     console.log('🟢 Final meal_date string =', mealDate);
@@ -128,6 +143,10 @@ export default function LogMealScreen() {
   };
 
   const submitSavedMeal = async () => {
+    if (!userId) {
+      Alert.alert('Not signed in', 'Please log in first.');
+      return;
+    }
     if (!selectedSavedMeal) return;
     const mealDate = getMealDate();
     console.log('🟢 Final meal_date string =', mealDate); // This should show '2025-06-26'

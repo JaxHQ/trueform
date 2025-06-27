@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 
 const formatDate = (d: Date) => {
@@ -20,6 +21,7 @@ const formatDate = (d: Date) => {
 
 export default function MealHistoryScreen() {
   const TEST_ID = '9eaaf752-0f1a-44fa-93a1-387ea322e505';
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [meals, setMeals] = useState<any[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
@@ -74,13 +76,11 @@ export default function MealHistoryScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity>
-          <Ionicons name="chevron-back" size={24} color="black" />
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>BACK</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Meal History</Text>
-        <TouchableOpacity>
-          <Ionicons name="add" size={24} color="black" />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.searchWrapper}>
@@ -146,7 +146,7 @@ export default function MealHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  container: { flex: 1, paddingTop: 60, paddingHorizontal: 20, backgroundColor: '#fff' },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
