@@ -7,33 +7,41 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Text,
-  TouchableOpacity
+  TouchableOpacity,
+  ScrollView
 } from 'react-native';
 
 export default function NutritionLayout() {
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={0}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView style={{ flex: 1 }}>
-          <Stack
-            screenOptions={{
-              title: 'TrueForm',
-              headerLeft: () => (
-                <TouchableOpacity
-                  onPress={() => router.push('/nutrition')}
-                  style={{ marginLeft: 15 }}
-                >
-                  <Ionicons name="home-outline" size={24} color="#007AFF" />
-                </TouchableOpacity>
-              ),
-            }}
-          />
-        </SafeAreaView>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={0}
+        >
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Stack
+              screenOptions={{
+                title: 'TrueForm',
+                headerStyle: { backgroundColor: '#000' },
+                headerTitleStyle: { color: '#fff' },
+                headerLeft: () => (
+                  <TouchableOpacity
+                    onPress={() => router.push('/nutrition')}
+                    style={{ marginLeft: 15 }}
+                  >
+                    <Ionicons name="home-outline" size={24} color="#fff" />
+                  </TouchableOpacity>
+                ),
+              }}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
