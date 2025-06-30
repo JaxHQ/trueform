@@ -25,6 +25,7 @@ export default function FinalizeSetup() {
     const fetchUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
+      const userEmail = session?.user?.email;
 
       if (!userId) {
         Alert.alert('Auth error', 'No user session found.');
@@ -35,7 +36,7 @@ export default function FinalizeSetup() {
       const { data, error } = await supabase
         .from('users')
         .select(
-          `goal, weight, height, workout_location, experience_level, days_per_week, program_preference, description, username`
+          `goal, weight, height, workout_location, experience_level, days_per_week, program_preference, description, username, target_weight`
         )
         .eq('user_id', userId)
         .single();
@@ -46,7 +47,7 @@ export default function FinalizeSetup() {
         return;
       }
 
-      setUserData({ ...data, user_id: userId });
+      setUserData({ ...data, user_id: userId, email: userEmail });
       setLoading(false);
     };
 
@@ -65,7 +66,9 @@ export default function FinalizeSetup() {
     const payload = {
       ...userData,
       username: userData.username,
+      email: userData.email,
       final_comment: extraNotes,
+      target_weight: userData.target_weight,
     };
 
     try {
@@ -93,6 +96,7 @@ export default function FinalizeSetup() {
           description: extraNotes || userData.description,
           program_preference: gptPlan.program_preference,
           onboarding_summary: gptPlan.message || null,
+          target_weight: userData.target_weight,
         })
         .eq('user_id', userData.user_id);
 

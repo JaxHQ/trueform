@@ -33,8 +33,14 @@ export default function ProfileScreen() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const uid =
-        session?.user.id ?? '9eaaf752-0f1a-44fa-93a1-387ea322e505';
+
+      if (!session) {
+        setUserData(null);
+        setLoading(false);
+        return;
+      }
+
+      const uid = session.user.id;
 
       const { data, error } = await supabase
         .from('users')
@@ -76,6 +82,9 @@ export default function ProfileScreen() {
     return (
       <SafeAreaView style={styles.center}>
         <Text>Couldn’t load profile.</Text>
+        <TouchableOpacity onPress={handleLogout} style={{ marginTop: 16 }}>
+          <Text style={{ color: 'blue' }}>Log out</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }

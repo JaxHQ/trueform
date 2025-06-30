@@ -1,12 +1,42 @@
+import { createClient } from '@supabase/supabase-js';
+import Constants from 'expo-constants';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
+import { supabase } from '../../lib/supabase';
+
+const supabaseClient = createClient(
+  Constants.expoConfig?.extra?.supabaseUrl!,
+  Constants.expoConfig?.extra?.supabaseAnonKey!
+);
 
 export default function OnboardingStart() {
   const router = useRouter();
   const [username, setUsername] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [fullName, setFullName] = useState<string>('');
 
-  const handleGetStarted = () => {
+  React.useEffect(() => {
+    const fetchSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUserId(session.user.id);
+        setEmail(session.user.email ?? '');
+        setFullName(session.user.user_metadata?.full_name || '');
+      }
+    };
+    fetchSession();
+  }, []);
+
+  const handleGetStarted = async () => {
+    if (!userId) return;
+
+    await supabase
+      .from('users')
+      .update({ username, email, full_name: fullName })
+      .eq('id', userId);
+
     router.push({
       pathname: '/(onboarding)/goals',
       params: { username },
@@ -20,6 +50,11 @@ export default function OnboardingStart() {
         Your personalized fitness and nutrition companion
       </Text>
       <Text style={styles.usernameHint}>Create a username to get started</Text>
+      {!userId && (
+        <Text style={{ color: 'red', marginBottom: 20 }}>
+          No user session detected
+        </Text>
+      )}
       <TextInput
         style={styles.input}
         placeholder="Enter your username"

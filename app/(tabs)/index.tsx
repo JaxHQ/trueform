@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, ActivityIndicator, Alert, TextInput } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, ActivityIndicator, Alert, TextInput, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import CircularProgress from '../../components/ui/CircularProgress';
 import { supabase } from '../../lib/supabase'; // adjust path if necessary
@@ -13,6 +13,7 @@ export default function HomeScreen() {
   const [goals, setGoals] = useState({ protein: 0, carbs: 0, fat: 0, calories: 1 });
   const [weight, setWeight] = useState<number | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [proteinPast7Days, setProteinPast7Days] = useState<Array<{ log_date: string; total_protein: number }>>([]);
 
   const TEST_ID = '9eaaf752-0f1a-44fa-93a1-387ea322e505';
   const getLocalISODate = () => {
@@ -22,6 +23,78 @@ export default function HomeScreen() {
   };
 
   const [uid, setUid] = useState<string>(TEST_ID);
+
+  // Pull-to-refresh state
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Refetch logic for pull-to-refresh
+  const refetchData = async () => {
+    setLoading(true);
+    const { data } = await supabase.auth.getSession();
+    const currentUid = data?.session?.user?.id ?? TEST_ID;
+    setUid(currentUid);
+
+    const today = getLocalISODate();
+    // Try strict "today" filter first
+    let { data: meals, error: mealsError } = await supabase
+      .from('meal_logs')
+      .select('protein, carbs, fat, calories')
+      .eq('user_id', currentUid)
+      .eq('meal_date', today)
+      .eq('status', 'complete');
+
+    if (!mealsError && (meals?.length ?? 0) === 0) {
+      console.log('No meals for exact date — skipping totals (no fallback)');
+    }
+
+    if (mealsError) {
+      console.error('Error fetching meals:', mealsError.message);
+    } else {
+      console.log('Meals fetched:', meals);
+    }
+
+    const sum = (k: 'protein' | 'carbs' | 'fat' | 'calories') =>
+      meals?.reduce((s, m) => s + (m[k] ?? 0), 0) ?? 0;
+
+    setTotals({
+      protein: sum('protein'),
+      carbs: sum('carbs'),
+      fat: sum('fat'),
+      calories: sum('calories'),
+    });
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('protein_target, carbs_target, fat_target, calorie_target, weight, username')
+      .eq('user_id', currentUid)
+      .single();
+
+    const p = userData?.protein_target ?? 0;
+    const c = userData?.carbs_target ?? 0;
+    const f = userData?.fat_target ?? 0;
+    const cal = userData?.calorie_target ?? (p * 4 + c * 4 + f * 9);
+    setGoals({ protein: p, carbs: c, fat: f, calories: cal });
+    setUser(userData);
+    setWeight(userData?.weight ?? null);
+
+    // Fetch protein totals for past 7 days using the new RPC function
+    const { data: protein7DaysData, error: protein7DaysError } = await supabase
+      .rpc('get_protein_past_7_days', { user_id: currentUid });
+
+    if (protein7DaysError) {
+      console.error('Error fetching protein past 7 days:', protein7DaysError.message);
+    } else {
+      setProteinPast7Days(protein7DaysData ?? []);
+      console.log('Protein past 7 days:', protein7DaysData);
+    }
+
+    setLoading(false);
+  };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    refetchData().then(() => setRefreshing(false));
+  }, []);
 
   const updateWeight = () => {
     Alert.prompt(
@@ -97,69 +170,16 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      const currentUid = data?.session?.user?.id ?? TEST_ID;
-      setUid(currentUid);
-
-      const today = getLocalISODate();
-      // Try strict "today" filter first
-      let { data: meals, error: mealsError } = await supabase
-        .from('meal_logs')
-        .select('protein, carbs, fat, calories')
-        .eq('user_id', currentUid)
-        .eq('meal_date', today)
-        .eq('status', 'complete');
-
-      // If nothing returned for today, log a warning (no fallback).
-      if (!mealsError && (meals?.length ?? 0) === 0) {
-        console.log('No meals for exact date — skipping totals (no fallback)');
-      }
-
-      if (mealsError) {
-        console.error('Error fetching meals:', mealsError.message);
-      } else {
-        console.log('Meals fetched:', meals);
-      }
-
-      const sum = (k: 'protein' | 'carbs' | 'fat' | 'calories') =>
-        meals?.reduce((s, m) => s + (m[k] ?? 0), 0) ?? 0;
-
-      setTotals({
-        protein: sum('protein'),
-        carbs: sum('carbs'),
-        fat: sum('fat'),
-        calories: sum('calories'),
-      });
-
-      const { data: userData } = await supabase
-        .from('users')
-        .select('protein_target, carbs_target, fat_target, calorie_target, weight, username')
-        .eq('user_id', currentUid)
-        .single();
-
-      const p = userData?.protein_target ?? 0;
-      const c = userData?.carbs_target ?? 0;
-      const f = userData?.fat_target ?? 0;
-      const cal = userData?.calorie_target ?? (p * 4 + c * 4 + f * 9);
-      setGoals({ protein: p, carbs: c, fat: f, calories: cal });
-      setUser(userData);
-      setWeight(userData?.weight ?? null);
-
-      setLoading(false);
-    })();
+    refetchData();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing || loading} onRefresh={onRefresh} />
+      }
+    >
       {/* Header */}
       <View style={styles.headerRow}>
         <Text style={styles.greeting}>Hi, {user?.username ?? 'friend'} 👋</Text>
@@ -196,6 +216,37 @@ export default function HomeScreen() {
             <Text style={styles.macroLabel}>Fat</Text>
           </View>
         </View>
+      </View>
+
+      {/* Protein 7-Day Progress Chart */}
+      <View style={[styles.card, { marginTop: 12 }]}>
+        <Text style={styles.sectionTitle}>Protein Intake – 7 Day Streak</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
+          {proteinPast7Days.slice().reverse().map(({ log_date, total_protein }) => {
+            const hitTarget = Math.abs(total_protein - goals.protein) <= 25;
+            return (
+              <View key={log_date} style={{ alignItems: 'center', marginHorizontal: 8 }}>
+                <View style={{
+                  height: 100,
+                  width: 24,
+                  backgroundColor: hitTarget ? '#FFD700' : '#ddd',
+                  justifyContent: 'flex-end',
+                  borderRadius: 6,
+                  overflow: 'hidden'
+                }}>
+                  <View style={{
+                    height: Math.min(total_protein / goals.protein * 100, 100),
+                    backgroundColor: hitTarget ? '#000' : '#aaa',
+                    width: '100%',
+                  }} />
+                </View>
+                <Text style={{ fontSize: 10.0, marginTop: 4 }}>{log_date.slice(5)}</Text>
+                {hitTarget && <Text style={{ fontSize: 14 }}>⭐</Text>}
+              </View>
+            );
+          })}
+        </ScrollView>
+        <Text style={styles.sectionText}>Goal: {goals.protein}g ±25g</Text>
       </View>
 
       <View style={{ width: '100%', paddingVertical: 0, marginTop: 0, marginBottom: 12 }}>
