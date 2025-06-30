@@ -34,7 +34,7 @@ export default function HomeScreen() {
         setWeight(newWeight);
         const today = getLocalISODate();
 
-        /* --- 1. Update current weight in users table --- */
+        // Ensure users table is updated before logging weight
         const { error: userErr } = await supabase
           .from('users')
           .update({ weight: newWeight })
@@ -72,6 +72,12 @@ export default function HomeScreen() {
                 text: 'Overwrite',
                 style: 'destructive',
                 onPress: async () => {
+                  // Ensure users table is updated before overwriting log
+                  const { error: userErr } = await supabase
+                    .from('users')
+                    .update({ weight: newWeight })
+                    .eq('user_id', uid);
+                  if (userErr) console.error('users update error:', userErr.message);
                   const { error: updErr } = await supabase
                     .from('bodyweight_logs')
                     .update({ weight: newWeight })
