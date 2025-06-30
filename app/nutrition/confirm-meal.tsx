@@ -157,7 +157,7 @@ export default function ConfirmMealScreen() {
       </Text>
 
       {/* macro boxes */}
-      <View style={{ padding: 16, borderWidth: 1, borderRadius: 12, borderColor: '#ddd', marginBottom: 16, width: '110%', height: 120 }}>
+      <View style={{ padding: 16, borderWidth: 1, borderRadius: 12, borderColor: '#ddd', marginBottom: 16, width: '100%', height: 120 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24, marginHorizontal: -4 }}>
           {[
             { label: 'PROTEIN', value: meal.protein ?? 0 },
@@ -169,7 +169,8 @@ export default function ConfirmMealScreen() {
               key={item.label}
               style={{
                 alignItems: 'center',
-                width: 70,
+                flex: 1,
+                minWidth: 60,
                 height: 72,
                 borderWidth: 1,
                 borderRadius: 8,
