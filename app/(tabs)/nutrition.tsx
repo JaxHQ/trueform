@@ -122,6 +122,21 @@ export default function NutritionScreen() {
   }, [userId]);
 
   // ─── UI ───────────────────────────────────────────────────────────────────────
+  const caloriesConsumed = totals.calories;
+  const calorieTarget = goals.calories_goal || 1;
+  const calorieRatio = caloriesConsumed / calorieTarget;
+
+  const calorieProgressColor =
+    calorieRatio > 1.1
+      ? '#990000' // dark red if >10% over
+      : calorieRatio > 1
+      ? '#FF3B30' // red if slightly over
+      : calorieRatio >= 0.9
+      ? '#4CAF50' // green if within 10% of target
+      : '#ccc'; // gray if under
+
+  const progress = Math.min(calorieRatio, 1);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={{ flex: 1 }}>
@@ -140,9 +155,13 @@ export default function NutritionScreen() {
 
           {/* Calorie Ring */}
           <View style={{ alignItems: 'center', marginBottom: 24 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 8 }}>
+              {caloriesConsumed} / {calorieTarget} kcal
+            </Text>
             <CircularProgress
-              progress={totals.calories / (goals.calories_goal || 1)}
-              label={`${totals.calories} / ${goals.calories_goal} kcal`}
+              progress={progress}
+              label={`${caloriesConsumed} / ${calorieTarget} kcal`}
+              color={calorieProgressColor}
             />
           </View>
 
@@ -154,12 +173,20 @@ export default function NutritionScreen() {
               const v   = totals[lbl.toLowerCase() as keyof typeof totals] as number;
               const tgt = goals[`${lbl.toLowerCase()}_goal` as keyof typeof goals] as number;
               const colors = ['#7a9', '#79c', '#e9a'];
+              const ratio = v / (tgt || 1);
+              const macroDiff = v - tgt;
+              const barColor =
+                Math.abs(macroDiff) <= tgt * 0.1
+                  ? '#4CAF50'
+                  : macroDiff > tgt * 0.1
+                  ? '#FF3B30'
+                  : colors[idx];
               return (
                 <View key={lbl} style={{ marginBottom: 12 }}>
                   <Text style={styles.macroLabel}>{lbl}</Text>
                   <Text style={styles.macroDetail}>{v}g / {tgt}g</Text>
                   <View style={styles.barBackground}>
-                    <View style={[styles.barFill, { flex: v, backgroundColor: colors[idx] }]} />
+                    <View style={[styles.barFill, { flex: v, backgroundColor: barColor }]} />
                     <View style={{ flex: Math.max(tgt - v, 0) }} />
                   </View>
                 </View>

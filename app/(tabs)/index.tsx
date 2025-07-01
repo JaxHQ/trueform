@@ -173,6 +173,30 @@ export default function HomeScreen() {
     refetchData();
   }, []);
 
+  // Define getMacroColor function with updated 10% threshold logic
+  const getMacroColor = (consumed: number, target: number) => {
+    if (target === 0) return '#333'; // default color if target is zero to avoid division by zero
+    const diffRatio = (consumed - target) / target;
+    const withinPad = Math.abs(diffRatio) <= 0.10; // Green if within 10%
+    const overLimit = diffRatio > 0.10; // Red if over 10%
+    if (withinPad) {
+      return 'green';
+    } else if (overLimit) {
+      return 'red';
+    } else {
+      return '#333'; // neutral color
+    }
+  };
+
+  const caloriesConsumed = totals.calories;
+  const calorieGoal = goals.calories;
+  const proteinConsumed = totals.protein;
+  const proteinTarget = goals.protein;
+  const carbsConsumed = totals.carbs;
+  const carbsTarget = goals.carbs;
+  const fatConsumed = totals.fat;
+  const fatTarget = goals.fat;
+
   return (
     <ScrollView
       contentContainerStyle={styles.container}
@@ -195,24 +219,31 @@ export default function HomeScreen() {
       <View style={styles.card}>
         <View style={styles.ringPlaceholder}>
           <CircularProgress
-            progress={goals.calories ? Math.min(totals.calories / goals.calories, 1) : 0}
-            label={`${totals.calories} / ${goals.calories} kcal`}
+            progress={calorieGoal ? Math.min(caloriesConsumed / calorieGoal, 1) : 0}
+            label={`${caloriesConsumed} / ${calorieGoal} kcal`}
+            color={getMacroColor(caloriesConsumed, calorieGoal)}
           />
         </View>
         <View style={styles.macrosRow}>
           <View style={{ alignItems: 'center' }}>
             <Ionicons name="restaurant-outline" size={18} color="#555" />
-            <Text style={styles.macroText}>{totals.protein} / {goals.protein}</Text>
+            <Text style={[styles.macroText, { color: getMacroColor(proteinConsumed, proteinTarget) }]}>
+              {proteinConsumed} / {proteinTarget}
+            </Text>
             <Text style={styles.macroLabel}>Protein</Text>
           </View>
           <View style={{ alignItems: 'center' }}>
             <Ionicons name="nutrition-outline" size={18} color="#555" />
-            <Text style={styles.macroText}>{totals.carbs} / {goals.carbs}</Text>
+            <Text style={[styles.macroText, { color: getMacroColor(carbsConsumed, carbsTarget) }]}>
+              {carbsConsumed} / {carbsTarget}
+            </Text>
             <Text style={styles.macroLabel}>Carbs</Text>
           </View>
           <View style={{ alignItems: 'center' }}>
             <Ionicons name="egg-outline" size={18} color="#555" />
-            <Text style={styles.macroText}>{totals.fat} / {goals.fat}</Text>
+            <Text style={[styles.macroText, { color: getMacroColor(fatConsumed, fatTarget) }]}>
+              {fatConsumed} / {fatTarget}
+            </Text>
             <Text style={styles.macroLabel}>Fat</Text>
           </View>
         </View>
@@ -220,10 +251,13 @@ export default function HomeScreen() {
 
       {/* Protein 7-Day Progress Chart */}
       <View style={[styles.card, { marginTop: 12 }]}>
-        <Text style={styles.sectionTitle}>Protein Intake – 7 Day Streak</Text>
+        <Text style={styles.sectionTitle}>Protein Intake – 7 Day Progress</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
           {proteinPast7Days.slice().reverse().map(({ log_date, total_protein }) => {
-            const hitTarget = Math.abs(total_protein - goals.protein) <= 25;
+            const diffRatio = (total_protein - proteinTarget) / proteinTarget;
+            const withinPad = Math.abs(diffRatio) <= 0.10;
+            const overLimit = diffRatio > 0.10;
+            const hitTarget = withinPad;
             return (
               <View key={log_date} style={{ alignItems: 'center', marginHorizontal: 8 }}>
                 <View style={{
@@ -235,7 +269,7 @@ export default function HomeScreen() {
                   overflow: 'hidden'
                 }}>
                   <View style={{
-                    height: Math.min(total_protein / goals.protein * 100, 100),
+                    height: Math.min(total_protein / proteinTarget * 100, 100),
                     backgroundColor: hitTarget ? '#000' : '#aaa',
                     width: '100%',
                   }} />
@@ -246,7 +280,7 @@ export default function HomeScreen() {
             );
           })}
         </ScrollView>
-        <Text style={styles.sectionText}>Goal: {goals.protein}g ±25g</Text>
+        <Text style={styles.sectionText}>Daily Target: {proteinTarget}g +/-10%</Text>
       </View>
 
       <View style={{ width: '100%', paddingVertical: 0, marginTop: 0, marginBottom: 12 }}>
