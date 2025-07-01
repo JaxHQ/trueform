@@ -44,6 +44,7 @@ export default function OnboardingNutrition() {
       return;
     }
 
+    console.log('Submitting:', { userId, goal, tracking, targetWeight, extraDetails });
     const { error } = await supabase
       .from('users')
       .update({
@@ -51,7 +52,7 @@ export default function OnboardingNutrition() {
         tracking_style: tracking,
         onboarding_complete: true,
         description: extraDetails,
-        targetWeight: targetWeight ? parseInt(targetWeight) : null,
+        targetWeight: targetWeight ? parseFloat(targetWeight) : null,
       })
       .eq('user_id', userId);
 

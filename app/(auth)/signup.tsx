@@ -34,23 +34,29 @@ export default function SignUp() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Account</Text>
+      <Text style={styles.label}>Email</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#888"
         autoCapitalize="none"
         onChangeText={setEmail}
         value={email}
       />
+      <Text style={styles.label}>Password</Text>
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#888"
         secureTextEntry
         onChangeText={setPassword}
         value={password}
       />
+      <Text style={styles.label}>Confirm Password</Text>
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
+        placeholderTextColor="#888"
         secureTextEntry
         onChangeText={setConfirmPassword}
         value={confirmPassword}
@@ -79,6 +85,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
     color: '#000',
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000',
+    marginBottom: 6,
   },
   input: {
     borderWidth: 1,

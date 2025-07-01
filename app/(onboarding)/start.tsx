@@ -32,10 +32,17 @@ export default function OnboardingStart() {
   const handleGetStarted = async () => {
     if (!userId) return;
 
-    await supabase
+    const { error, data } = await supabase
       .from('users')
       .update({ username, email, full_name: fullName })
-      .eq('id', userId);
+      .eq('user_id', userId)
+      .select();
+
+    if (error) {
+      console.error('Update error:', error);
+    } else {
+      console.log('User update success:', data);
+    }
 
     router.push({
       pathname: '/(onboarding)/goals',
