@@ -88,58 +88,61 @@ export default function MealHistoryScreen() {
         <TextInput placeholder="Search" style={styles.searchInput} />
       </View>
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <TouchableOpacity onPress={() => {
-          const prev = new Date(selectedDate + 'T00:00:00');
-          prev.setDate(prev.getDate() - 1);
-          setSelectedDate(formatDate(prev));
-        }}>
-          <Ionicons name="chevron-back" size={20} />
-        </TouchableOpacity>
-        <Text>{selectedDate}</Text>
-        <TouchableOpacity onPress={() => {
-          const next = new Date(selectedDate + 'T00:00:00');
-          next.setDate(next.getDate() + 1);
-          setSelectedDate(formatDate(next));
-        }}>
-          <Ionicons name="chevron-forward" size={20} />
-        </TouchableOpacity>
-      </View>
-
       {loading ? (
         <ActivityIndicator size="large" />
       ) : (
-        <>
-          {bodyweight && (
-            <View style={{ marginBottom: 20 }}>
-              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
-                📉 Bodyweight: {bodyweight} kg
-              </Text>
-            </View>
-          )}
-          <FlatList
-            data={meals}
-            keyExtractor={(item) => item.mealid}
-            renderItem={({ item }) => (
-              <View style={styles.mealItem}>
-                <View>
-                  <Text style={styles.timeText}>{item.meal_date}</Text>
-                </View>
-                <View style={styles.mealDetails}>
-                  <Text style={styles.mealType}>{item.meal_name || item.description}</Text>
-                  <Text style={styles.description}>
-                    P {item.protein}g | C {item.carbs}g | F {item.fat}g
+        <FlatList
+          data={meals}
+          keyExtractor={(item) => item.mealid}
+          ListHeaderComponent={
+            <>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <TouchableOpacity onPress={() => {
+                  const prev = new Date(selectedDate + 'T00:00:00');
+                  prev.setDate(prev.getDate() - 1);
+                  setSelectedDate(formatDate(prev));
+                }}>
+                  <Ionicons name="chevron-back" size={20} />
+                </TouchableOpacity>
+                <Text>{selectedDate}</Text>
+                <TouchableOpacity onPress={() => {
+                  const next = new Date(selectedDate + 'T00:00:00');
+                  next.setDate(next.getDate() + 1);
+                  setSelectedDate(formatDate(next));
+                }}>
+                  <Ionicons name="chevron-forward" size={20} />
+                </TouchableOpacity>
+              </View>
+              {bodyweight && (
+                <View style={{ marginBottom: 20 }}>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
+                    📉 Bodyweight: {bodyweight} kg
                   </Text>
                 </View>
-                <Text style={styles.calories}>{item.calories} kcal</Text>
+              )}
+            </>
+          }
+          renderItem={({ item }) => (
+            <View style={styles.mealItem}>
+              <View>
+                <Text style={styles.timeText}>{item.meal_date}</Text>
               </View>
-            )}
-          />
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalCalories}>{totalCalories} kcal</Text>
-          </View>
-        </>
+              <View style={styles.mealDetails}>
+                <Text style={styles.mealType}>{item.meal_name || item.description}</Text>
+                <Text style={styles.description}>
+                  P {item.protein}g | C {item.carbs}g | F {item.fat}g
+                </Text>
+              </View>
+              <Text style={styles.calories}>{item.calories} kcal</Text>
+            </View>
+          )}
+          ListFooterComponent={
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total:</Text>
+              <Text style={styles.totalCalories}>{totalCalories} kcal</Text>
+            </View>
+          }
+        />
       )}
     </View>
   );

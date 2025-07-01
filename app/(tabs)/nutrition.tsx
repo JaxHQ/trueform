@@ -102,7 +102,7 @@ export default function NutritionScreen() {
     const fetchGoals = async () => {
       const { data, error } = await supabase
         .from('users')
-        .select('protein_target, carbs_target, fat_target')
+        .select('protein_target, carbs_target, fat_target, calorie_target')
         .eq('user_id', userId)
         .single();
 
@@ -113,10 +113,7 @@ export default function NutritionScreen() {
           protein_goal:  data.protein_target ?? 0,
           carbs_goal:    data.carbs_target   ?? 0,
           fat_goal:      data.fat_target     ?? 0,
-          calories_goal:
-            (data.protein_target ?? 0) * 4 +
-            (data.carbs_target   ?? 0) * 4 +
-            (data.fat_target     ?? 0) * 9,
+          calories_goal: data.calorie_target ?? 0,
         });
       }
     };

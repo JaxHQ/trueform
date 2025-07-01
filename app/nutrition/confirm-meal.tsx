@@ -54,7 +54,8 @@ export default function ConfirmMealScreen() {
       let normalised: Partial<MealRow> | null = null;
       if (gptMeal) {
         const tmp: any = { ...gptMeal };
-        if (tmp.mealId && !tmp.mealid) tmp.mealid = tmp.mealId; // camel → snake mismatch
+        if (tmp.mealId && !tmp.mealid) tmp.mealid = tmp.mealId;
+        if (tmp.mealDate && !tmp.meal_date) tmp.meal_date = tmp.mealDate;
         normalised = tmp as Partial<MealRow>;
       }
 

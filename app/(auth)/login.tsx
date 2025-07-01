@@ -23,19 +23,41 @@ export default function Login() {
       Alert.alert('Error', 'Please enter email and password');
       return;
     }
+
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    if (authError) {
+      setLoading(false);
+      Alert.alert('Login failed', authError.message);
+      return;
+    }
+
+    const userId = authData.user.id;
+
+    const { data: userProfile, error: profileError } = await supabase
+      .from('users')
+      .select('onboarding_complete')
+      .eq('user_id', userId)
+      .single();
+
     setLoading(false);
 
-    if (error) {
-      Alert.alert('Login failed', error.message);
+    if (profileError) {
+      Alert.alert('Error fetching profile', profileError.message);
+      return;
+    }
+
+    const isOnboardingComplete = String(userProfile?.onboarding_complete).toLowerCase() === 'true';
+
+    if (isOnboardingComplete) {
+      router.replace('/(tabs)');
     } else {
-      router.navigate('/(onboarding)/start');
+      router.replace('/(onboarding)/start');
     }
   };
 
