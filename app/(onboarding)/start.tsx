@@ -34,7 +34,7 @@ export default function OnboardingStart() {
 
     const { error, data } = await supabase
       .from('users')
-      .update({ username, email, full_name: fullName })
+      .update({ username, email })
       .eq('user_id', userId)
       .select();
 

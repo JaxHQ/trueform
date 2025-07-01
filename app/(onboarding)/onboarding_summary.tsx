@@ -73,7 +73,7 @@ export default function OnboardingSummary() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>Welcome, @{data.username}!</Text>
+        <Text style={styles.header}>Welcome, {data.username}!</Text>
 
         <Text style={styles.section}>✨ Your Nutrition Targets</Text>
         <View style={styles.card}>
@@ -88,7 +88,7 @@ export default function OnboardingSummary() {
           <Row
             label="Program"
             value={
-              data.program_preference === 'own_program'
+              data.program_preference === 'My Own Program'
                 ? 'Your Own Program'
                 : 'TrueForm-Built'
             }
