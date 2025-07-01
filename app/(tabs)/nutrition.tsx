@@ -138,133 +138,126 @@ export default function NutritionScreen() {
   const progress = Math.min(calorieRatio, 1);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={{ flex: 1 }}>
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={[styles.container, { flexGrow: 1 }]}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#000"
-            />
-          }
-          keyboardShouldPersistTaps="handled"
-        >
+    <ScrollView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      contentContainerStyle={[styles.container, { backgroundColor: '#fff', flexGrow: 1, paddingTop: 32, paddingBottom: 40 }]}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor="#000"
+        />
+      }
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* Calorie Ring */}
+      <View style={{ alignItems: 'center', marginBottom: 24, paddingTop: 34 }}>
+        <CircularProgress
+          progress={progress}
+          label={`${caloriesConsumed} / ${calorieTarget} kcal`}
+          color={calorieProgressColor}
+        />
+      </View>
 
-          {/* Calorie Ring */}
-          <View style={{ alignItems: 'center', marginBottom: 24 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 8 }}>
-              {caloriesConsumed} / {calorieTarget} kcal
-            </Text>
-            <CircularProgress
-              progress={progress}
-              label={`${caloriesConsumed} / ${calorieTarget} kcal`}
-              color={calorieProgressColor}
-            />
-          </View>
+      {/* Macro Card */}
+      <View style={styles.card}>
+        <Text style={styles.title}>MACROS</Text>
 
-          {/* Macro Card */}
-          <View style={styles.card}>
-            <Text style={styles.title}>MACROS</Text>
+        {(['Protein', 'Carbs', 'Fat'] as const).map((lbl, idx) => {
+          const v   = totals[lbl.toLowerCase() as keyof typeof totals] as number;
+          const tgt = goals[`${lbl.toLowerCase()}_goal` as keyof typeof goals] as number;
+          const colors = ['#7a9', '#79c', '#e9a'];
+          const ratio = v / (tgt || 1);
+          const macroDiff = v - tgt;
+          const barColor =
+            Math.abs(macroDiff) <= tgt * 0.1
+              ? '#4CAF50'
+              : macroDiff > tgt * 0.1
+              ? '#FF3B30'
+              : colors[idx];
+          return (
+            <View key={lbl} style={{ marginBottom: 12 }}>
+              <Text style={styles.macroLabel}>{lbl}</Text>
+              <Text style={styles.macroDetail}>{v}g / {tgt}g</Text>
+              <View style={styles.barBackground}>
+                <View style={[styles.barFill, { flex: v, backgroundColor: barColor }]} />
+                <View style={{ flex: Math.max(tgt - v, 0) }} />
+              </View>
+            </View>
+          );
+        })}
+      </View>
 
-            {(['Protein', 'Carbs', 'Fat'] as const).map((lbl, idx) => {
-              const v   = totals[lbl.toLowerCase() as keyof typeof totals] as number;
-              const tgt = goals[`${lbl.toLowerCase()}_goal` as keyof typeof goals] as number;
-              const colors = ['#7a9', '#79c', '#e9a'];
-              const ratio = v / (tgt || 1);
-              const macroDiff = v - tgt;
-              const barColor =
-                Math.abs(macroDiff) <= tgt * 0.1
-                  ? '#4CAF50'
-                  : macroDiff > tgt * 0.1
-                  ? '#FF3B30'
-                  : colors[idx];
-              return (
-                <View key={lbl} style={{ marginBottom: 12 }}>
-                  <Text style={styles.macroLabel}>{lbl}</Text>
-                  <Text style={styles.macroDetail}>{v}g / {tgt}g</Text>
-                  <View style={styles.barBackground}>
-                    <View style={[styles.barFill, { flex: v, backgroundColor: barColor }]} />
-                    <View style={{ flex: Math.max(tgt - v, 0) }} />
-                  </View>
-                </View>
-              );
-            })}
-          </View>
+      {/* Today's Meals */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.title}>TODAY'S MEALS</Text>
+          <TouchableOpacity
+            onPress={() => router.push('/nutrition/log-meal')}
+            style={styles.addBtn}
+          >
+            <Text style={styles.addBtnTxt}>+ Add Meal</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.divider} />
 
-          {/* Today's Meals */}
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.title}>TODAY'S MEALS</Text>
+        {loading && <ActivityIndicator size="small" style={{ marginTop: 12 }} />}
+
+        {!loading && meals.length === 0 && (
+          <Text style={styles.mealPlaceholder}>No meals logged yet today.</Text>
+        )}
+
+        {!loading && meals.length > 0 && (
+          meals.map(m => (
+            <View key={m.mealid} style={styles.mealCard}>
+              <Text style={styles.mealTitle}>{m.meal_name || 'Meal'}</Text>
+              <Text style={styles.mealInfo}>
+                Protein: {m.protein}g · Carbs: {m.carbs}g · Fat: {m.fat}g · {m.calories} kcal
+              </Text>
+
+              {/* delete button */}
               <TouchableOpacity
-                onPress={() => router.push('/nutrition/log-meal')}
-                style={styles.addBtn}
+                onPress={() => Alert.alert(
+                  'Delete Meal',
+                  'Are you sure you want to delete this meal?',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Delete',
+                      style: 'destructive',
+                      onPress: async () => {
+                        const { error } = await supabase
+                          .from('meal_logs')
+                          .delete()
+                          .eq('mealid', m.mealid);
+                        if (!error) {
+                          setMeals(prev => prev.filter(x => x.mealid !== m.mealid));
+                          fetchMeals(); // refresh meals and totals
+                        } else {
+                          console.error('Delete error:', error.message);
+                        }
+                      },
+                    },
+                  ]
+                )}
+                style={styles.trashBtn}
               >
-                <Text style={styles.addBtnTxt}>+ Add Meal</Text>
+                <Ionicons name="trash-outline" size={18} color="#666" />
               </TouchableOpacity>
             </View>
-            <View style={styles.divider} />
+          ))
+        )}
 
-            {loading && <ActivityIndicator size="small" style={{ marginTop: 12 }} />}
-
-            {!loading && meals.length === 0 && (
-              <Text style={styles.mealPlaceholder}>No meals logged yet today.</Text>
-            )}
-
-            {!loading && meals.length > 0 && (
-              meals.map(m => (
-                <View key={m.mealid} style={styles.mealCard}>
-                  <Text style={styles.mealTitle}>{m.meal_name || 'Meal'}</Text>
-                  <Text style={styles.mealInfo}>
-                    Protein: {m.protein}g · Carbs: {m.carbs}g · Fat: {m.fat}g · {m.calories} kcal
-                  </Text>
-
-                  {/* delete button */}
-                  <TouchableOpacity
-                    onPress={() => Alert.alert(
-                      'Delete Meal',
-                      'Are you sure you want to delete this meal?',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Delete',
-                          style: 'destructive',
-                          onPress: async () => {
-                            const { error } = await supabase
-                              .from('meal_logs')
-                              .delete()
-                              .eq('mealid', m.mealid);
-                            if (!error) {
-                              setMeals(prev => prev.filter(x => x.mealid !== m.mealid));
-                              fetchMeals(); // refresh meals and totals
-                            } else {
-                              console.error('Delete error:', error.message);
-                            }
-                          },
-                        },
-                      ]
-                    )}
-                    style={styles.trashBtn}
-                  >
-                    <Ionicons name="trash-outline" size={18} color="#666" />
-                  </TouchableOpacity>
-                </View>
-              ))
-            )}
-
-            <TouchableOpacity
-              onPress={() => router.push('/nutrition/meal-history')}
-              style={styles.histBtn}
-            >
-              <Text style={styles.histTxt}>Meal History</Text>
-            </TouchableOpacity>
-          </View>
-
-        </ScrollView>
+        <TouchableOpacity
+          onPress={() => router.push('/nutrition/meal-history')}
+          style={styles.histBtn}
+        >
+          <Text style={styles.histTxt}>Meal History</Text>
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+      {/* Give extra padding at the bottom for natural scroll bounce */}
+      <View style={{ height: 32 }} />
+    </ScrollView>
   );
 }
 
@@ -272,11 +265,10 @@ export default function NutritionScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
   container: {
+    flexGrow: 1,
     padding: 16,
-    alignItems: 'center',
-    minHeight: Dimensions.get('window').height,
     backgroundColor: '#fff',
-    paddingTop: 32,
+    // paddingTop is handled in contentContainerStyle in ScrollView above
   },
   card: {
     width: '100%',

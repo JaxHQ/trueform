@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, ActivityIndicator, Alert, TextInput, RefreshControl } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import CircularProgress from '../../components/ui/CircularProgress';
 import { supabase } from '../../lib/supabase'; // adjust path if necessary
@@ -7,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [totals, setTotals] = useState({ protein: 0, carbs: 0, fat: 0, calories: 0 });
@@ -198,128 +200,163 @@ export default function HomeScreen() {
   const fatTarget = goals.fat;
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing || loading} onRefresh={onRefresh} />
-      }
-    >
-      {/* Header */}
-      <View style={styles.headerRow}>
-        <Text style={styles.greeting}>Hi, {user?.username ?? 'friend'} 👋</Text>
-        <View style={styles.achievementBox}>
-          <TouchableOpacity onPress={updateWeight}>
-            <Text style={styles.achievementText}>{weight ? `${weight}kg` : '--'}</Text>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: insets.top + 16,
+          paddingBottom: insets.bottom + 48,
+          paddingHorizontal: 24,
+        }}
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
+        bounces={true}
+        refreshControl={
+          <RefreshControl refreshing={refreshing || loading} onRefresh={onRefresh} />
+        }
+      >
+        {/* Unified Header */}
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          paddingHorizontal: 15,
+          // Reduce or remove top padding to minimize excess space above
+          paddingTop: 0,
+          marginBottom: 18,
+        }}>
+          <Text style={{ fontSize: 22, fontWeight: '600' }}>Hi, Sax 👋</Text>
+        </View>
+
+        {/* Bodyweight box at top-right */}
+        <View style={{
+          position: 'absolute',
+          top: insets.top -  0,
+          right: 30,
+          zIndex: 10
+        }}>
+          <TouchableOpacity onPress={updateWeight} activeOpacity={0.7}>
+            <View style={{
+              backgroundColor: '#fff',
+              borderRadius: 8,
+              paddingVertical: 4,
+              paddingHorizontal: 10,
+              borderWidth: 1,
+              borderColor: '#ccc',
+              alignItems: 'center',
+            }}>
+              <Text style={{ fontSize: 14, fontWeight: '500' }}>{weight ? `${weight}kg` : '112kg'}</Text>
+              <Text style={{ fontSize: 12, color: '#888' }}>Bodyweight</Text>
+            </View>
           </TouchableOpacity>
-          <Text style={styles.achievementLabel}>Bodyweight</Text>
         </View>
-      </View>
 
-      {/* Calorie Summary Section */}
-      <View style={styles.card}>
-        <View style={styles.ringPlaceholder}>
-          <CircularProgress
-            progress={calorieGoal ? Math.min(caloriesConsumed / calorieGoal, 1) : 0}
-            label={`${caloriesConsumed} / ${calorieGoal} kcal`}
-            color={getMacroColor(caloriesConsumed, calorieGoal)}
-          />
-        </View>
-        <View style={styles.macrosRow}>
-          <View style={{ alignItems: 'center' }}>
-            <Ionicons name="restaurant-outline" size={18} color="#555" />
-            <Text style={[styles.macroText, { color: getMacroColor(proteinConsumed, proteinTarget) }]}>
-              {proteinConsumed} / {proteinTarget}
-            </Text>
-            <Text style={styles.macroLabel}>Protein</Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <Ionicons name="nutrition-outline" size={18} color="#555" />
-            <Text style={[styles.macroText, { color: getMacroColor(carbsConsumed, carbsTarget) }]}>
-              {carbsConsumed} / {carbsTarget}
-            </Text>
-            <Text style={styles.macroLabel}>Carbs</Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <Ionicons name="egg-outline" size={18} color="#555" />
-            <Text style={[styles.macroText, { color: getMacroColor(fatConsumed, fatTarget) }]}>
-              {fatConsumed} / {fatTarget}
-            </Text>
-            <Text style={styles.macroLabel}>Fat</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Protein 7-Day Progress Chart */}
-      <View style={[styles.card, { marginTop: 12 }]}>
-        <Text style={styles.sectionTitle}>Protein Intake – 7 Day Progress</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
-          {proteinPast7Days.slice().reverse().map(({ log_date, total_protein }) => {
-            const diffRatio = (total_protein - proteinTarget) / proteinTarget;
-            const withinPad = Math.abs(diffRatio) <= 0.10;
-            const overLimit = diffRatio > 0.10;
-            const hitTarget = withinPad;
-            return (
-              <View key={log_date} style={{ alignItems: 'center', marginHorizontal: 8 }}>
-                <View style={{
-                  height: 100,
-                  width: 24,
-                  backgroundColor: hitTarget ? '#FFD700' : '#ddd',
-                  justifyContent: 'flex-end',
-                  borderRadius: 6,
-                  overflow: 'hidden'
-                }}>
-                  <View style={{
-                    height: Math.min(total_protein / proteinTarget * 100, 100),
-                    backgroundColor: hitTarget ? '#000' : '#aaa',
-                    width: '100%',
-                  }} />
-                </View>
-                <Text style={{ fontSize: 10.0, marginTop: 4 }}>{log_date.slice(5)}</Text>
-                {hitTarget && <Text style={{ fontSize: 14 }}>⭐</Text>}
+        {/* Calorie Summary Section */}
+        <View style={{ alignItems: 'center', width: '100%', marginBottom: 16 }}>
+          <View style={[styles.card, { width: '100%', alignItems: 'stretch' }]}>
+            <View style={styles.ringPlaceholder}>
+              <CircularProgress
+                progress={calorieGoal ? Math.min(caloriesConsumed / calorieGoal, 1) : 0}
+                label={`${caloriesConsumed} / ${calorieGoal} kcal`}
+                color={getMacroColor(caloriesConsumed, calorieGoal)}
+              />
+            </View>
+            <View style={styles.macrosRow}>
+              <View style={{ alignItems: 'center' }}>
+                <Ionicons name="restaurant-outline" size={18} color="#555" />
+                <Text style={[styles.macroText, { color: getMacroColor(proteinConsumed, proteinTarget) }]}>
+                  {proteinConsumed} / {proteinTarget}
+                </Text>
+                <Text style={styles.macroLabel}>Protein</Text>
               </View>
-            );
-          })}
-        </ScrollView>
-        <Text style={styles.sectionText}>Daily Target: {proteinTarget}g +/-10%</Text>
-      </View>
-
-      <View style={{ width: '100%', paddingVertical: 0, marginTop: 0, marginBottom: 12 }}>
-        <TouchableOpacity style={[styles.blackButton, { width: '100%' }]} onPress={() => router.push('/nutrition/log-meal')}>
-          <Text style={styles.blackButtonText}>Log Meal</Text>
-        </TouchableOpacity>
-      </View>
-
-
-      {/* Workout Section */}
-      <View style={{ position: 'relative' }}>
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>TODAY’S WORKOUT</Text>
-          <Text style={styles.sectionText}>You don’t have a workout planned today.</Text>
-          <TouchableOpacity style={styles.blackButton}>
-            <Text style={styles.blackButtonText}>Generate a New Workout</Text>
-          </TouchableOpacity>
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-            <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
-              <Text style={styles.blackButtonText}>Conditioning</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
-              <Text style={styles.blackButtonText}>Recovery</Text>
-            </TouchableOpacity>
+              <View style={{ alignItems: 'center' }}>
+                <Ionicons name="nutrition-outline" size={18} color="#555" />
+                <Text style={[styles.macroText, { color: getMacroColor(carbsConsumed, carbsTarget) }]}>
+                  {carbsConsumed} / {carbsTarget}
+                </Text>
+                <Text style={styles.macroLabel}>Carbs</Text>
+              </View>
+              <View style={{ alignItems: 'center' }}>
+                <Ionicons name="egg-outline" size={18} color="#555" />
+                <Text style={[styles.macroText, { color: getMacroColor(fatConsumed, fatTarget) }]}>
+                  {fatConsumed} / {fatTarget}
+                </Text>
+                <Text style={styles.macroLabel}>Fat</Text>
+              </View>
+            </View>
           </View>
         </View>
-        <View style={styles.overlay}>
-          <Text style={styles.overlayText}>Coming Soon</Text>
-        </View>
-      </View>
 
-    </ScrollView>
+        {/* Protein 7-Day Progress Chart */}
+        <View style={[styles.card, { marginTop: 0, marginBottom: 16 }]}>
+          <Text style={styles.sectionTitle}>Protein Intake – 7 Day Progress</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
+            {proteinPast7Days.slice().reverse().map(({ log_date, total_protein }) => {
+              const diffRatio = (total_protein - proteinTarget) / proteinTarget;
+              const withinPad = Math.abs(diffRatio) <= 0.10;
+              const hitTarget = withinPad;
+              return (
+                <View key={log_date} style={{ alignItems: 'center', marginHorizontal: 8 }}>
+                  <View style={{
+                    height: 100,
+                    width: 24,
+                    backgroundColor: hitTarget ? '#FFD700' : '#ddd',
+                    justifyContent: 'flex-end',
+                    borderRadius: 6,
+                    overflow: 'hidden'
+                  }}>
+                    <View style={{
+                      height: Math.min(total_protein / proteinTarget * 100, 100),
+                      backgroundColor: hitTarget ? '#000' : '#aaa',
+                      width: '100%',
+                    }} />
+                  </View>
+                  <Text style={{ fontSize: 10.0, marginTop: 4 }}>{log_date.slice(5)}</Text>
+                  {hitTarget && <Text style={{ fontSize: 14 }}>⭐</Text>}
+                </View>
+              );
+            })}
+          </ScrollView>
+          <Text style={styles.sectionText}>Daily Target: {proteinTarget}g +/-10%</Text>
+        </View>
+
+        <View style={{ width: '100%', marginBottom: 16 }}>
+          <TouchableOpacity style={[styles.blackButton, { width: '100%' }]} onPress={() => router.push('/nutrition/log-meal')}>
+            <Text style={styles.blackButtonText}>Log Meal</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Workout Section */}
+        <View style={{ position: 'relative', marginBottom: 16 }}>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>TODAY’S WORKOUT</Text>
+            <Text style={styles.sectionText}>You don’t have a workout planned today.</Text>
+            <TouchableOpacity style={styles.blackButton}>
+              <Text style={styles.blackButtonText}>Generate a New Workout</Text>
+            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
+              <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
+                <Text style={styles.blackButtonText}>Conditioning</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
+                <Text style={styles.blackButtonText}>Recovery</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.overlay}>
+            <Text style={styles.overlayText}>Coming Soon</Text>
+          </View>
+        </View>
+
+        {/* Bottom bounce space */}
+        <View style={{ height: 64 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 48,
-    padding: 16,
+    // Removed paddingTop and padding, not needed with SafeAreaView/ScrollView changes
     alignItems: 'center',
     minHeight: Dimensions.get('window').height * 0.95,
     backgroundColor: '#fff',
@@ -330,6 +367,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 24,
     alignItems: 'center',
+    gap: 16,
   },
   greeting: {
     fontSize: 18,
@@ -357,12 +395,13 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 4,
+    marginBottom: 0,
     backgroundColor: '#fefefe',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
+    gap: 16,
   },
   ringPlaceholder: {
     alignSelf: 'center',
@@ -380,6 +419,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 8,
+    gap: 16,
   },
   macroText: {
     fontSize: 12,
