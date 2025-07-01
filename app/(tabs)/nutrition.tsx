@@ -128,7 +128,7 @@ export default function NutritionScreen() {
 
   const calorieProgressColor =
     calorieRatio > 1.1
-      ? '#990000' // dark red if >10% over
+      ? '#FF3B30' // red if >10% over
       : calorieRatio > 1
       ? '#FF3B30' // red if slightly over
       : calorieRatio >= 0.9
