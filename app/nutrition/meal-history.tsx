@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const formatDate = (d: Date) => {
   const y = d.getFullYear();
@@ -74,48 +75,42 @@ export default function MealHistoryScreen() {
   const totalCalories = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>BACK</Text>
-        </TouchableOpacity>
+        <View style={{ width: 24 }} />
         <Text style={styles.headerTitle}>Meal History</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <View style={styles.searchWrapper}>
-        <Ionicons name="search" size={20} color="#999" style={{ marginRight: 8 }} />
-        <TextInput placeholder="Search" style={styles.searchInput} />
+        <View style={{ width: 24 }} />
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" style={{ marginTop: 3 }} />
       ) : (
         <FlatList
           data={meals}
           keyExtractor={(item) => item.mealid}
+          contentContainerStyle={{ paddingBottom: 40 }}
           ListHeaderComponent={
             <>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <View style={styles.dateNavigation}>
                 <TouchableOpacity onPress={() => {
                   const prev = new Date(selectedDate + 'T00:00:00');
                   prev.setDate(prev.getDate() - 1);
                   setSelectedDate(formatDate(prev));
                 }}>
-                  <Ionicons name="chevron-back" size={20} />
+                  <Ionicons name="chevron-back" size={20} color="#555" />
                 </TouchableOpacity>
-                <Text>{selectedDate}</Text>
+                <Text style={styles.dateText}>{selectedDate}</Text>
                 <TouchableOpacity onPress={() => {
                   const next = new Date(selectedDate + 'T00:00:00');
                   next.setDate(next.getDate() + 1);
                   setSelectedDate(formatDate(next));
                 }}>
-                  <Ionicons name="chevron-forward" size={20} />
+                  <Ionicons name="chevron-forward" size={20} color="#555" />
                 </TouchableOpacity>
               </View>
-              {bodyweight && (
-                <View style={{ marginBottom: 20 }}>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
+              {bodyweight !== null && (
+                <View style={styles.bodyweightContainer}>
+                  <Text style={styles.bodyweightText}>
                     📉 Bodyweight: {bodyweight} kg
                   </Text>
                 </View>
@@ -144,49 +139,52 @@ export default function MealHistoryScreen() {
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 60, paddingHorizontal: 20, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 2 },
   header: {
+    paddingTop: 2,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  headerTitle: { fontSize: 20, fontWeight: '600', color: '#111' },
+  dateNavigation: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+    paddingHorizontal: 1,
   },
-  headerTitle: { fontSize: 22, fontWeight: 'bold' },
-  searchWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 16,
-  },
-  searchInput: { flex: 1, height: 40 },
+  dateText: { fontSize: 16, fontWeight: '600', color: '#333' },
+  bodyweightContainer: { marginBottom: 24, paddingHorizontal: 10 },
+  bodyweightText: { fontSize: 16, fontWeight: '600', color: '#444' },
   mealItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: 24,
+    paddingHorizontal: 10,
   },
-  timeText: { fontSize: 14, fontWeight: 'bold', marginRight: 10 },
+  timeText: { fontSize: 14, fontWeight: '600', color: '#666', marginRight: 12, width: 80 },
   mealDetails: { flex: 1 },
-  mealType: { fontWeight: 'bold', fontSize: 16, marginBottom: 2 },
-  description: { color: '#666' },
-  calories: { fontWeight: '600' },
+  mealType: { fontWeight: '700', fontSize: 17, marginBottom: 4, color: '#222' },
+  description: { color: '#888', fontSize: 14 },
+  calories: { fontWeight: '700', fontSize: 15, color: '#555', width: 80, textAlign: 'right' },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 16,
     borderTopWidth: 1,
-    borderColor: '#eee',
-    paddingTop: 10,
+    borderColor: '#ddd',
+    paddingTop: 14,
+    paddingHorizontal: 10,
   },
-  totalLabel: { fontSize: 16, fontWeight: 'bold' },
-  totalCalories: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  totalLabel: { fontSize: 18, fontWeight: '700', color: '#111' },
+  totalCalories: { fontSize: 18, fontWeight: '700', color: '#111' },
 });

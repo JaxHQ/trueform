@@ -28,34 +28,39 @@ export default function NutritionLayout() {
                 backgroundColor: '#000',
                 flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 paddingVertical: 12,
                 paddingHorizontal: 16,
                 zIndex: 10,
               }}
             >
-              <TouchableOpacity onPress={() => router.push('/nutrition')}>
-                <Ionicons name="home-outline" size={24} color="#fff" />
+              {/* Home Button and Title */}
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity onPress={() => router.push('/nutrition')}>
+                  <Ionicons name="home-outline" size={24} color="#fff" />
+                </TouchableOpacity>
+                <Text
+                  style={{
+                    color: '#fff',
+                    fontSize: 18,
+                    fontWeight: '600',
+                    marginLeft: 12,
+                  }}
+                >
+                  TrueForm
+                </Text>
+              </View>
+
+              {/* Back Button */}
+              <TouchableOpacity onPress={() => router.back()}>
+                <Ionicons name="arrow-back-outline" size={24} color="#fff" />
               </TouchableOpacity>
-              <Text
-                style={{
-                  color: '#fff',
-                  fontSize: 18,
-                  fontWeight: '600',
-                  marginLeft: 12,
-                }}
-              >
-                TrueForm
-              </Text>
             </View>
 
             {/* Scrollable Content Below Header */}
-            <ScrollView
-              contentContainerStyle={{ flexGrow: 1, paddingBottom: 24, backgroundColor: '#000' }}
-              keyboardShouldPersistTaps="handled"
-              bounces={true}
-            >
+            <View style={{ flex: 1 }}>
               <Slot />
-            </ScrollView>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
