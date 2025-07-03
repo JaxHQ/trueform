@@ -134,6 +134,18 @@ export default function ProfileScreen() {
               {calorie_target} calories / day
             </Text>
           )}
+          {(protein_target || carbs_target || fat_target) && (
+            <Text style={styles.cardText}>
+              Macros: P{protein_target ?? '—'} / C{carbs_target ?? '—'} / F
+              {fat_target ?? '—'}
+            </Text>
+          )}
+          <TouchableOpacity
+            style={{ marginTop: 8 }}
+            onPress={() => router.push('/profile/edit-goals')}
+          >
+            <Text style={{ color: 'blue' }}>Edit Goals</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Preferences Card */}
@@ -147,10 +159,12 @@ export default function ProfileScreen() {
           <Text style={styles.cardText}>
             Experience: {experience_level ?? '—'}
           </Text>
-          <Text style={styles.cardText}>
-            Macros: P{protein_target ?? '—'} / C{carbs_target ?? '—'} / F
-            {fat_target ?? '—'}
-          </Text>
+          <TouchableOpacity
+            style={{ marginTop: 8 }}
+            onPress={() => router.push('/profile/edit-preferences')}
+          >
+            <Text style={{ color: 'blue' }}>Edit Preferences</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Footer Actions */}

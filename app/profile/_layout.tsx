@@ -1,39 +1,75 @@
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, router } from 'expo-router';
+import { Slot, router } from 'expo-router';
 import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  View,
+  TouchableOpacity,
   Text,
-  TouchableOpacity
+  ScrollView,
 } from 'react-native';
 
 export default function NutritionLayout() {
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={0}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView style={{ flex: 1 }}>
-          <Stack
-            screenOptions={{
-              title: 'TrueForm',
-              headerLeft: () => (
-                <TouchableOpacity
-                  onPress={() => router.push('/nutrition')}
-                  style={{ marginLeft: 15 }}
-                >
-                  <Ionicons name="home-outline" size={24} color="#007AFF" />
-                </TouchableOpacity>
-              ),
-            }}
-          />
-        </SafeAreaView>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={80}
+        >
+          <View style={{ flex: 1 }}>
+            {/* 🧠 Custom Top Header Bar */}
+            <View
+              style={{
+                backgroundColor: '#000',
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                zIndex: 10,
+                position: 'relative',
+              }}
+            >
+              <TouchableOpacity onPress={() => router.push('/nutrition')}>
+                <Ionicons name="home-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+              <Text
+                style={{
+                  color: '#e0e0e0',
+                  fontSize: 18,
+                  fontWeight: '700',
+                  marginLeft: 12,
+                }}
+              >
+                TrueForm
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/(tabs)/profile')}
+                style={{
+                  position: 'absolute',
+                  right: 16,
+                  top: 12,
+                }}
+              >
+                <Ionicons name="arrow-back-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Scrollable Content Below Header */}
+            <ScrollView
+              contentContainerStyle={{ flexGrow: 1, paddingBottom: 24, backgroundColor: '#000' }}
+              keyboardShouldPersistTaps="handled"
+              bounces={true}
+            >
+              <Slot />
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

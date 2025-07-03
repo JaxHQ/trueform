@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import CircularProgress from '../../components/ui/CircularProgress';
 import { supabase } from '../../lib/supabase'; // adjust path if necessary
 import { Ionicons } from '@expo/vector-icons';
+import { Linking } from 'react-native';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -325,27 +326,22 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Workout Section */}
-        <View style={{ position: 'relative', marginBottom: 16 }}>
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>TODAY’S WORKOUT</Text>
-            <Text style={styles.sectionText}>You don’t have a workout planned today.</Text>
-            <TouchableOpacity style={styles.blackButton}>
-              <Text style={styles.blackButtonText}>Generate a New Workout</Text>
-            </TouchableOpacity>
-            <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
-              <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
-                <Text style={styles.blackButtonText}>Conditioning</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.blackButton, { flex: 1 }]}>
-                <Text style={styles.blackButtonText}>Recovery</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.overlay}>
-            <Text style={styles.overlayText}>Coming Soon</Text>
-          </View>
-        </View>
+        {/* Send Feedback Button */}
+        <TouchableOpacity
+          onPress={() =>
+            Linking.openURL('jnhemopo@gmail.com?subject=TrueForm Feedback&body=Your feedback here...')
+          }
+          style={{
+            backgroundColor: '#F1F1F1',
+            padding: 16,
+            borderRadius: 12,
+            marginBottom: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: '600' }}>Send Feedback</Text>
+        </TouchableOpacity>
 
         {/* Bottom bounce space */}
         <View style={{ height: 64 }} />
