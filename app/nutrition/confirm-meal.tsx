@@ -1,6 +1,6 @@
 // app/nutrition/confirm-meal.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, Button, ActivityIndicator, Alert, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 
@@ -133,79 +133,92 @@ export default function ConfirmMealScreen() {
   // ───────────────────────────────── render
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
         <Text>Loading meal info…</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!meal) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#fff' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
         <Text>Meal not found.</Text>
         <Button title="Back" onPress={() => router.back()} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={{ flex: 1, padding: 24, backgroundColor: '#fff' }}>
-      <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' }}>Confirm Meal</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: '#fff' }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          backgroundColor: '#fff',
+          paddingTop: 32,
+          paddingBottom: 40,
+          paddingHorizontal: 20,
+        }}
+        bounces={true}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' }}>Confirm Meal</Text>
 
-      <Text style={{ textAlign: 'center', marginBottom: 4 }}>
-        {meal.meal_name} • {meal.meal_date}
-      </Text>
+        <Text style={{ textAlign: 'center', marginBottom: 4 }}>
+          {meal.meal_name} • {meal.meal_date}
+        </Text>
 
-      {/* macro boxes */}
-      <View style={{ padding: 16, borderWidth: 1, borderRadius: 12, borderColor: '#ddd', marginBottom: 16, width: '100%', height: 120 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24, marginHorizontal: -4 }}>
-          {[
-            { label: 'PROTEIN', value: meal.protein ?? 0 },
-            { label: 'CARBS', value: meal.carbs ?? 0 },
-            { label: 'FAT', value: meal.fat ?? 0 },
-            { label: 'CALS', value: meal.calories ?? 0 },
-          ].map((item) => (
-            <View
-              key={item.label}
-              style={{
-                alignItems: 'center',
-                flex: 1,
-                minWidth: 60,
-                height: 72,
-                borderWidth: 1,
-                borderRadius: 8,
-                marginHorizontal: 6,
-                justifyContent: 'space-between',
-                paddingVertical: 10
-              }}
-            >
-              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{item.value}</Text>
-              <Text style={{ fontSize: 8 }}>{item.label}</Text>
-            </View>
-          ))}
+        {/* macro boxes */}
+        <View style={{ padding: 16, borderWidth: 1, borderRadius: 12, borderColor: '#ddd', marginBottom: 16, width: '100%', height: 120 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24, marginHorizontal: -4 }}>
+            {[
+              { label: 'PROTEIN', value: meal.protein ?? 0 },
+              { label: 'CARBS', value: meal.carbs ?? 0 },
+              { label: 'FAT', value: meal.fat ?? 0 },
+              { label: 'CALS', value: meal.calories ?? 0 },
+            ].map((item) => (
+              <View
+                key={item.label}
+                style={{
+                  alignItems: 'center',
+                  flex: 1,
+                  minWidth: 60,
+                  height: 72,
+                  borderWidth: 1,
+                  borderRadius: 8,
+                  marginHorizontal: 6,
+                  justifyContent: 'space-between',
+                  paddingVertical: 10
+                }}
+              >
+                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{item.value}</Text>
+                <Text style={{ fontSize: 8 }}>{item.label}</Text>
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
 
-      {/* feedback and buttons */}
-      <View style={{ backgroundColor: '#f9f9f9', borderRadius: 12, padding: 16 }}>
-        <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>✅ NUTRITION FEEDBACK</Text>
-        <Text style={{ marginBottom: 24 }}>{meal.feedback}</Text>
+        {/* feedback and buttons */}
+        <View style={{ backgroundColor: '#f9f9f9', borderRadius: 12, padding: 16 }}>
+          <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>✅ NUTRITION FEEDBACK</Text>
+          <Text style={{ marginBottom: 24 }}>{meal.feedback}</Text>
 
-        <TouchableOpacity
-          style={{ borderWidth: 1, borderColor: 'black', padding: 12, borderRadius: 8, marginBottom: 12, backgroundColor: '#fff' }}
-          onPress={handleConfirm}
-        >
-          <Text style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>Confirm & Save</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={{ borderWidth: 1, borderColor: 'black', padding: 12, borderRadius: 8, marginBottom: 12, backgroundColor: '#fff' }}
+            onPress={handleConfirm}
+          >
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>Confirm & Save</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={{ borderWidth: 1, borderColor: 'black', padding: 12, borderRadius: 8, backgroundColor: '#fff' }}
-          onPress={handleRetry}
-        >
-          <Text style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>Retry Estimate</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          <TouchableOpacity
+            style={{ borderWidth: 1, borderColor: 'black', padding: 12, borderRadius: 8, backgroundColor: '#fff' }}
+            onPress={handleRetry}
+          >
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>Retry Estimate</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

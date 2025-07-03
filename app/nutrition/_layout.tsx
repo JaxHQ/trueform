@@ -30,8 +30,6 @@ export default function NutritionLayout() {
                 alignItems: 'center',
                 paddingVertical: 12,
                 paddingHorizontal: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: '#222',
                 zIndex: 10,
               }}
             >
@@ -52,8 +50,9 @@ export default function NutritionLayout() {
 
             {/* Scrollable Content Below Header */}
             <ScrollView
-              contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+              contentContainerStyle={{ flexGrow: 1, paddingBottom: 24, backgroundColor: '#000' }}
               keyboardShouldPersistTaps="handled"
+              bounces={true}
             >
               <Slot />
             </ScrollView>
