@@ -1,3 +1,4 @@
+'use client';
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 import React, { useState } from 'react';
@@ -51,37 +52,42 @@ export default function OnboardingStart() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to TrueForm</Text>
-      <Text style={styles.subtitle}>
-        Your personalized fitness and nutrition companion
-      </Text>
-      <Text style={styles.usernameHint}>Create a username to get started</Text>
-      {!userId && (
-        <Text style={{ color: 'red', marginBottom: 20 }}>
-          No user session detected
+    <View style={styles.outerContainer}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Welcome to TrueForm</Text>
+        <Text style={styles.subtitle}>
+          Your personalized fitness and nutrition companion
         </Text>
-      )}
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your username"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
-        <Text style={styles.buttonText}>Get Started</Text>
-      </TouchableOpacity>
+        <Text style={styles.usernameHint}>Create a username to get started</Text>
+        {!userId && (
+          <Text style={{ color: 'red', marginBottom: 20 }}>
+            No user session detected
+          </Text>
+        )}
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your username"
+          value={username}
+          onChangeText={setUsername}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
+          <Text style={styles.buttonText}>Get Started</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outerContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 24,
     backgroundColor: '#fff',
+  },
+  container: {
+    alignItems: 'center',
+    paddingVertical: 40,
   },
   title: {
     fontSize: 28,

@@ -28,7 +28,7 @@ export default function SignUp() {
       Alert.alert('Reminder', 'Please confirm your email soon to unlock all features.');
     }
 
-    router.navigate('/(onboarding)/start');
+    router.navigate('/(auth)/start');
   };
 
   return (

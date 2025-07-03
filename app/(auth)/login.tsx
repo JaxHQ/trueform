@@ -57,7 +57,7 @@ export default function Login() {
     if (isOnboardingComplete) {
       router.replace('/(tabs)');
     } else {
-      router.replace('/(onboarding)/start');
+      router.replace('/(auth)/start');
     }
   };
 

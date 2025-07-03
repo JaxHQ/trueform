@@ -56,7 +56,8 @@ export default function ProfileScreen() {
             workout_location,
             experience_level,
             targetWeight,
-            weight
+            weight,
+            language_preference
           `
         )
         .eq('user_id', uid)
@@ -158,6 +159,9 @@ export default function ProfileScreen() {
           </Text>
           <Text style={styles.cardText}>
             Experience: {experience_level ?? '—'}
+          </Text>
+          <Text style={styles.cardText}>
+            Language: {userData.language_preference ?? '—'}
           </Text>
           <TouchableOpacity
             style={{ marginTop: 8 }}
