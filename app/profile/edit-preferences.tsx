@@ -1,4 +1,4 @@
-import { View, Text, Button, TextInput, Modal, TouchableOpacity, Pressable, ScrollView } from 'react-native';
+import { View, Text, Button, TextInput, Modal, TouchableOpacity, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -70,55 +70,60 @@ export default function EditPreferencesScreen() {
   const [experience, setExperience] = useState('');
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#ffffff', paddingTop: 24 }}>
-
-      <View style={{ paddingHorizontal: 24 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 24 }}>
-          Edit Preferences
-        </Text>
-      </View>
-
-      <View style={{ paddingHorizontal: 24 }}>
-        <ClassicDropdown label="Language" value={language} setValue={setLanguage} options={['English', 'Japanese']} />
-        <ClassicDropdown label="Location" value={location} setValue={setLocation} options={['Home', 'Gym']} />
-        <ClassicDropdown label="Experience Level" value={experience} setValue={setExperience} options={['Beginner', 'Intermediate', 'Advanced']} />
-      </View>
-
-      <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
-        <View style={{ backgroundColor: '#000', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}>
-          <Text
-            onPress={async () => {
-              const {
-                data: { user },
-                error: userError,
-              } = await supabase.auth.getUser();
-
-              if (userError || !user) {
-                console.error('User fetch error:', userError?.message);
-                return;
-              }
-
-              const { error } = await supabase
-                .from('users')
-                .update({
-                  ...(language !== '' && { language_preference: language }),
-                  ...(location !== '' && { workout_location: location }),
-                  ...(experience !== '' && { experience_level: experience }),
-                })
-                .eq('user_id', user.id);
-
-              if (error) {
-                console.error('Update error:', error.message);
-              } else {
-                router.back();
-              }
-            }}
-            style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}
-          >
-            Save Preferences
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={64}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: '#ffffff', paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 24 }}>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 24 }}>
+            Edit Preferences
           </Text>
         </View>
-      </View>
-    </View>
+
+        <View style={{ paddingHorizontal: 24 }}>
+          <ClassicDropdown label="Language" value={language} setValue={setLanguage} options={['English', 'Japanese']} />
+          <ClassicDropdown label="Location" value={location} setValue={setLocation} options={['Home', 'Gym']} />
+          <ClassicDropdown label="Experience Level" value={experience} setValue={setExperience} options={['Beginner', 'Intermediate', 'Advanced']} />
+        </View>
+
+        <View style={{ paddingHorizontal: 24, marginTop: 24 }}>
+          <View style={{ backgroundColor: '#000', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}>
+            <Text
+              onPress={async () => {
+                const {
+                  data: { user },
+                  error: userError,
+                } = await supabase.auth.getUser();
+
+                if (userError || !user) {
+                  console.error('User fetch error:', userError?.message);
+                  return;
+                }
+
+                const { error } = await supabase
+                  .from('users')
+                  .update({
+                    ...(language !== '' && { language_preference: language }),
+                    ...(location !== '' && { workout_location: location }),
+                    ...(experience !== '' && { experience_level: experience }),
+                  })
+                  .eq('user_id', user.id);
+
+                if (error) {
+                  console.error('Update error:', error.message);
+                } else {
+                  router.back();
+                }
+              }}
+              style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}
+            >
+              Save Preferences
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

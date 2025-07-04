@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Button, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, Alert, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase'; // Adjust path if needed
@@ -69,44 +69,50 @@ export default function EditGoalsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={80}
+    >
+      <View style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
 
-      <ScrollView contentContainerStyle={{ padding: 24 }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 24 }}>Edit Goals</Text>
+        <ScrollView contentContainerStyle={{ padding: 24 }}>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 24 }}>Edit Goals</Text>
 
-        <View style={{ backgroundColor: 'white', borderRadius: 12, padding: 16, marginBottom: 20 }}>
-          {[
-            { label: 'Goal Type', value: goalType, setter: setGoalType, placeholder: 'e.g. Lean Bulk, Fat Loss' },
-            { label: 'Target Weight (kg)', value: targetWeight, setter: setTargetWeight, placeholder: 'e.g. 85', keyboard: 'numeric' },
-            { label: 'Training Days per Week', value: trainingDays, setter: setTrainingDays, placeholder: 'e.g. 4', keyboard: 'numeric' },
-            { label: 'Calories per Day', value: caloriesPerDay, setter: setCaloriesPerDay, placeholder: 'e.g. 2800', keyboard: 'numeric' },
-            { label: 'Protein Target (g)', value: proteinTarget, setter: setProteinTarget, placeholder: 'e.g. 180', keyboard: 'numeric' },
-            { label: 'Carbs Target (g)', value: carbsTarget, setter: setCarbsTarget, placeholder: 'e.g. 300', keyboard: 'numeric' },
-            { label: 'Fat Target (g)', value: fatTarget, setter: setFatTarget, placeholder: 'e.g. 90', keyboard: 'numeric' },
-          ].map(({ label, value, setter, placeholder, keyboard }, index) => (
-            <View key={index} style={{ marginBottom: 16 }}>
-              <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}>{label}</Text>
-              <TextInput
-                value={value}
-                onChangeText={setter}
-                placeholder={placeholder}
-                placeholderTextColor="#777"
-                keyboardType={(keyboard as KeyboardTypeOptions) || 'default'}
-                style={{
-                  borderWidth: 1,
-                  borderColor: '#ddd',
-                  borderRadius: 8,
-                  padding: 10,
-                }}
-              />
-            </View>
-          ))}
-        </View>
+          <View style={{ backgroundColor: 'white', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+            {[
+              { label: 'Goal Type', value: goalType, setter: setGoalType, placeholder: 'e.g. Lean Bulk, Fat Loss' },
+              { label: 'Target Weight (kg)', value: targetWeight, setter: setTargetWeight, placeholder: 'e.g. 85', keyboard: 'numeric' },
+              { label: 'Training Days per Week', value: trainingDays, setter: setTrainingDays, placeholder: 'e.g. 4', keyboard: 'numeric' },
+              { label: 'Calories per Day', value: caloriesPerDay, setter: setCaloriesPerDay, placeholder: 'e.g. 2800', keyboard: 'numeric' },
+              { label: 'Protein Target (g)', value: proteinTarget, setter: setProteinTarget, placeholder: 'e.g. 180', keyboard: 'numeric' },
+              { label: 'Carbs Target (g)', value: carbsTarget, setter: setCarbsTarget, placeholder: 'e.g. 300', keyboard: 'numeric' },
+              { label: 'Fat Target (g)', value: fatTarget, setter: setFatTarget, placeholder: 'e.g. 90', keyboard: 'numeric' },
+            ].map(({ label, value, setter, placeholder, keyboard }, index) => (
+              <View key={index} style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}>{label}</Text>
+                <TextInput
+                  value={value}
+                  onChangeText={setter}
+                  placeholder={placeholder}
+                  placeholderTextColor="#777"
+                  keyboardType={(keyboard as KeyboardTypeOptions) || 'default'}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: '#ddd',
+                    borderRadius: 8,
+                    padding: 10,
+                  }}
+                />
+              </View>
+            ))}
+          </View>
 
-        <TouchableOpacity onPress={handleSave} style={{ backgroundColor: '#000', padding: 16, borderRadius: 8, alignItems: 'center' }}>
-          <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Save Goals</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
+          <TouchableOpacity onPress={handleSave} style={{ backgroundColor: '#000', padding: 16, borderRadius: 8, alignItems: 'center' }}>
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Save Goals</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    </KeyboardAvoidingView>
   );
 }

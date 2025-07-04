@@ -1,6 +1,6 @@
 // app/profile/settings.tsx
 import React from 'react';
-import { View, Text, Switch, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, Switch, StyleSheet, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
 export default function Settings() {
@@ -12,33 +12,36 @@ export default function Settings() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Optional Expo-router header */}
-      <Stack.Screen options={{ title: 'Settings' }} />
-      <Text onPress={() => router.back()} style={styles.backButton}>← Back</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Stack.Screen options={{ title: 'Settings' }} />
 
-      <View style={styles.container}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
+          <View style={styles.container}>
+            <Text style={styles.sectionTitle}>Preferences</Text>
 
-        {/* Notifications toggle */}
-        <View style={styles.row}>
-          <Text style={styles.label}>Notifications</Text>
-          <Switch
-            value={notifications}
-            onValueChange={setNotifications}
-          />
-        </View>
+            {/* Notifications toggle */}
+            <View style={styles.row}>
+              <Text style={styles.label}>Notifications</Text>
+              <Switch
+                value={notifications}
+                onValueChange={setNotifications}
+              />
+            </View>
 
-        {/* Dark mode toggle (demo only – you’d connect this to theme context) */}
-        <View style={styles.row}>
-          <Text style={styles.label}>Dark Mode</Text>
-          <Switch
-            value={darkMode}
-            onValueChange={setDarkMode}
-          />
-        </View>
-
-        {/* Add more settings rows here */}
-      </View>
+            {/* Dark mode toggle */}
+            <View style={styles.row}>
+              <Text style={styles.label}>Dark Mode</Text>
+              <Switch
+                value={darkMode}
+                onValueChange={setDarkMode}
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -47,6 +50,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f9f9f9',
+  },
+  scrollContent: {
+    paddingBottom: 40,
+    flexGrow: 1,
   },
   container: {
     flex: 1,
@@ -79,13 +86,5 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '500',
     color: '#222',
-  },
-  backButton: {
-    fontSize: 16,
-    color: '#007AFF',
-    marginBottom: 20,
-    paddingTop: 12,
-    paddingLeft: 8,
-    alignSelf: 'flex-start',
   },
 });

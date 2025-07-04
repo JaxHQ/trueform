@@ -4,18 +4,19 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   Dimensions,
   TouchableOpacity,
   ActivityIndicator,
   Animated,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // ────── STATE ──────
   const [loading, setLoading] = useState(true);
@@ -85,20 +86,20 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
+      <View style={styles.center}>
         <ActivityIndicator size="large" />
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!userData) {
     return (
-      <SafeAreaView style={styles.center}>
+      <View style={styles.center}>
         <Text>Couldn’t load profile.</Text>
         <TouchableOpacity onPress={handleLogout} style={{ marginTop: 16 }}>
           <Text style={{ color: 'blue' }}>Log out</Text>
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -117,8 +118,21 @@ export default function ProfileScreen() {
   } = userData;
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Animated.ScrollView contentContainerStyle={styles.container} style={{ opacity: fadeAnim }}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <Animated.ScrollView
+        contentContainerStyle={{
+          paddingTop: insets.top + 16,
+          paddingBottom: insets.bottom + 48,
+          paddingHorizontal: 24,
+          backgroundColor: '#fff',
+          flexGrow: 1,
+          alignItems: 'center',
+          minHeight: Dimensions.get('window').height,
+        }}
+        style={{ opacity: fadeAnim }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         {/* Profile Header */}
         <View style={styles.headerCard}>
           <View style={styles.avatarPlaceholder} />
@@ -203,7 +217,7 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Animated.ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -215,7 +229,7 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 24,
-    paddingTop: 56,
+    paddingTop: 24,
     backgroundColor: '#fff',
     alignItems: 'center',
     flexGrow: 1,
