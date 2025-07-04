@@ -17,6 +17,8 @@ export default function HomeScreen() {
   const [weight, setWeight] = useState<number | null>(null);
   const [user, setUser] = useState<any>(null);
   const [proteinPast7Days, setProteinPast7Days] = useState<Array<{ log_date: string; total_protein: number }>>([]);
+  const [fatPast7Days, setFatPast7Days] = useState<Array<{ log_date: string; total_fat: number }>>([]);
+  const [carbsPast7Days, setCarbsPast7Days] = useState<Array<{ log_date: string; total_carbs: number }>>([]);
 
   const TEST_ID = '9eaaf752-0f1a-44fa-93a1-387ea322e505';
   const getLocalISODate = () => {
@@ -89,6 +91,28 @@ export default function HomeScreen() {
     } else {
       setProteinPast7Days(protein7DaysData ?? []);
       console.log('Protein past 7 days:', protein7DaysData);
+    }
+
+    // Fetch fat totals for past 7 days
+    const { data: fat7DaysData, error: fat7DaysError } = await supabase
+      .rpc('get_fat_past_7_days', { user_id: currentUid });
+
+    if (fat7DaysError) {
+      console.error('Error fetching fat past 7 days:', fat7DaysError.message);
+    } else {
+      setFatPast7Days(fat7DaysData ?? []);
+      console.log('Fat past 7 days:', fat7DaysData);
+    }
+
+    // Fetch carbs totals for past 7 days
+    const { data: carbs7DaysData, error: carbs7DaysError } = await supabase
+      .rpc('get_carbs_past_7_days', { user_id: currentUid });
+
+    if (carbs7DaysError) {
+      console.error('Error fetching carbs past 7 days:', carbs7DaysError.message);
+    } else {
+      setCarbsPast7Days(carbs7DaysData ?? []);
+      console.log('Carbs past 7 days:', carbs7DaysData);
     }
 
     setLoading(false);
@@ -287,37 +311,111 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Protein 7-Day Progress Chart */}
-        <View style={[styles.card, { marginTop: 0, marginBottom: 16 }]}>
-          <Text style={styles.sectionTitle}>Protein Intake – 7 Day Progress</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
-            {proteinPast7Days.slice().reverse().map(({ log_date, total_protein }) => {
-              const diffRatio = (total_protein - proteinTarget) / proteinTarget;
-              const hitTarget = diffRatio >= -0.10;
-              return (
-                <View key={log_date} style={{ alignItems: 'center', marginHorizontal: 8 }}>
-                  <View style={{
-                    height: 100,
-                    width: 24,
-                    backgroundColor: hitTarget ? '#FFD700' : '#ddd',
-                    justifyContent: 'flex-end',
-                    borderRadius: 6,
-                    overflow: 'hidden'
-                  }}>
+
+        {/* Horizontal scrollable Protein, Fat & Carbs Intake cards */}
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          style={{ marginBottom: 16 }}
+          contentContainerStyle={{ gap: 16 }}
+        >
+          {/* Protein Intake Card */}
+          <View style={[styles.card, { width: Dimensions.get('window').width - 48 }]}>
+            <Text style={styles.sectionTitle}>Protein Intake – 7 Day Progress</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
+              {proteinPast7Days.slice().reverse().map(({ log_date, total_protein }) => {
+                const diffRatio = (total_protein - proteinTarget) / proteinTarget;
+                const hitTarget = diffRatio >= -0.10;
+                return (
+                  <View key={log_date} style={{ alignItems: 'center', marginHorizontal: 8 }}>
                     <View style={{
-                      height: Math.min(total_protein / proteinTarget * 100, 100),
-                      backgroundColor: hitTarget ? '#000' : '#aaa',
-                      width: '100%',
-                    }} />
+                      height: 100,
+                      width: 24,
+                      backgroundColor: hitTarget ? '#FFD700' : '#ddd',
+                      justifyContent: 'flex-end',
+                      borderRadius: 6,
+                      overflow: 'hidden'
+                    }}>
+                      <View style={{
+                        height: Math.min(total_protein / proteinTarget * 100, 100),
+                        backgroundColor: hitTarget ? '#000' : '#aaa',
+                        width: '100%',
+                      }} />
+                    </View>
+                    <Text style={{ fontSize: 10.0, marginTop: 4 }}>{log_date.slice(5)}</Text>
+                    {hitTarget && <Text style={{ fontSize: 14 }}>⭐</Text>}
                   </View>
-                  <Text style={{ fontSize: 10.0, marginTop: 4 }}>{log_date.slice(5)}</Text>
-                  {hitTarget && <Text style={{ fontSize: 14 }}>⭐</Text>}
-                </View>
-              );
-            })}
-          </ScrollView>
-          <Text style={styles.sectionText}>Daily Target: {proteinTarget}g +/-10%</Text>
-        </View>
+                );
+              })}
+            </ScrollView>
+            <Text style={styles.sectionText}>Daily Target: {proteinTarget}g +/-10%</Text>
+          </View>
+
+          {/* Fat Intake Card */}
+          <View style={[styles.card, { width: Dimensions.get('window').width - 48 }]}>
+            <Text style={styles.sectionTitle}>Fat Intake – 7 Day Check</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
+              {fatPast7Days.slice().reverse().map(({ log_date, total_fat }) => {
+                const diffRatio = (total_fat - fatTarget) / fatTarget;
+                const fatOver = diffRatio > 0.10;
+                return (
+                  <View key={log_date + '-fat'} style={{ alignItems: 'center', marginHorizontal: 8 }}>
+                    <View style={{
+                      height: 100,
+                      width: 24,
+                      backgroundColor: fatOver ? '#FFD1D1' : '#ddd',
+                      justifyContent: 'flex-end',
+                      borderRadius: 6,
+                      overflow: 'hidden'
+                    }}>
+                      <View style={{
+                        height: Math.min(total_fat / fatTarget * 100, 100),
+                        backgroundColor: fatOver ? '#F00' : '#aaa',
+                        width: '100%',
+                      }} />
+                    </View>
+                    <Text style={{ fontSize: 10, marginTop: 4 }}>{log_date.slice(5)}</Text>
+                    {fatOver && <Text style={{ fontSize: 14 }}>🐷</Text>}
+                  </View>
+                );
+              })}
+            </ScrollView>
+            <Text style={styles.sectionText}>Piggy if &gt;110% of fat target</Text>
+          </View>
+
+          {/* Carbs Intake Card */}
+          <View style={[styles.card, { width: Dimensions.get('window').width - 48 }]}>
+            <Text style={styles.sectionTitle}>Carbs Intake – 7 Day Progress</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
+              {carbsPast7Days.slice().reverse().map(({ log_date, total_carbs }) => {
+                const diffRatio = (total_carbs - carbsTarget) / carbsTarget;
+                const hitTarget = Math.abs(diffRatio) <= 0.10;
+                return (
+                  <View key={log_date + '-carbs'} style={{ alignItems: 'center', marginHorizontal: 8 }}>
+                    <View style={{
+                      height: 100,
+                      width: 24,
+                      backgroundColor: hitTarget ? '#B0E0E6' : '#ddd',
+                      justifyContent: 'flex-end',
+                      borderRadius: 6,
+                      overflow: 'hidden'
+                    }}>
+                      <View style={{
+                        height: Math.min(total_carbs / carbsTarget * 100, 100),
+                        backgroundColor: hitTarget ? '#00BFFF' : '#aaa',
+                        width: '100%',
+                      }} />
+                    </View>
+                    <Text style={{ fontSize: 10, marginTop: 4 }}>{log_date.slice(5)}</Text>
+                    {hitTarget && <Text style={{ fontSize: 14 }}>⭐</Text>}
+                  </View>
+                );
+              })}
+            </ScrollView>
+            <Text style={styles.sectionText}>Star if within 10% of carb target</Text>
+          </View>
+        </ScrollView>
 
         <View style={{ width: '100%', marginBottom: 16 }}>
           <TouchableOpacity style={[styles.blackButton, { width: '100%' }]} onPress={() => router.push('/nutrition/log-meal')}>
