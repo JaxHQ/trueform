@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 
@@ -7,6 +7,7 @@ export default function OnboardingStats() {
   const router = useRouter();
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
+  const [targetWeight, setTargetWeight] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleNext = async () => {
@@ -29,7 +30,7 @@ export default function OnboardingStats() {
 
     const { error } = await supabase
       .from('users')
-      .update({ weight: Number(weight), height: Number(height) })
+      .update({ weight: Number(weight), height: Number(height), target_weight: Number(targetWeight) })
       .eq('user_id', userId);
 
     setLoading(false);
@@ -43,44 +44,72 @@ export default function OnboardingStats() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Let’s set your starting stats</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: '#FFFFFF' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={64}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Let’s set your starting stats</Text>
 
-      <Text style={styles.label}>Weight (kg)</Text>
-      <TextInput
-        placeholder="Weight (kg)"
-        keyboardType="numeric"
-        value={weight}
-        onChangeText={setWeight}
-        style={styles.input}
-      />
+          <Text style={styles.label}>Weight (kg)</Text>
+          <TextInput
+            placeholder="Weight (kg)"
+            keyboardType="numeric"
+            value={weight}
+            onChangeText={setWeight}
+            style={styles.input}
+          />
 
-      <Text style={styles.label}>Height (cm)</Text>
-      <TextInput
-        placeholder="Height (cm)"
-        keyboardType="numeric"
-        value={height}
-        onChangeText={setHeight}
-        style={styles.input}
-      />
+          <Text style={styles.label}>Height (cm)</Text>
+          <TextInput
+            placeholder="Height (cm)"
+            keyboardType="numeric"
+            value={height}
+            onChangeText={setHeight}
+            style={styles.input}
+          />
 
-      <TouchableOpacity style={styles.button} onPress={handleNext} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Next</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+          <Text style={styles.label}>Target Weight (kg)</Text>
+          <TextInput
+            placeholder="Target Weight (kg)"
+            keyboardType="numeric"
+            value={targetWeight}
+            onChangeText={setTargetWeight}
+            style={styles.input}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={handleNext} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Next</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+  },
+  container: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   title: {
     fontSize: 24,
@@ -95,12 +124,19 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   input: {
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 20,
     fontSize: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
   },
   button: {
     marginTop: 20,

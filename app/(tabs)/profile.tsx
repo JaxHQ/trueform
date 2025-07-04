@@ -8,6 +8,7 @@ import {
   Dimensions,
   TouchableOpacity,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useRouter } from 'expo-router';
@@ -19,6 +20,7 @@ export default function ProfileScreen() {
   // ────── STATE ──────
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any | null>(null);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   // ────── LOGOUT ──────
   const handleLogout = async () => {
@@ -71,6 +73,16 @@ export default function ProfileScreen() {
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    if (!loading) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [loading]);
+
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
@@ -106,7 +118,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <Animated.ScrollView contentContainerStyle={styles.container} style={{ opacity: fadeAnim }}>
         {/* Profile Header */}
         <View style={styles.headerCard}>
           <View style={styles.avatarPlaceholder} />
@@ -142,10 +154,10 @@ export default function ProfileScreen() {
             </Text>
           )}
           <TouchableOpacity
-            style={{ marginTop: 8 }}
+            style={{ marginTop: 12 }}
             onPress={() => router.push('/profile/edit-goals')}
           >
-            <Text style={{ color: 'blue' }}>Edit Goals</Text>
+            <Text style={{ color: '#007AFF', fontWeight: '600' }}>Edit Goals</Text>
           </TouchableOpacity>
         </View>
 
@@ -164,10 +176,10 @@ export default function ProfileScreen() {
             Language: {userData.language_preference ?? '—'}
           </Text>
           <TouchableOpacity
-            style={{ marginTop: 8 }}
+            style={{ marginTop: 12 }}
             onPress={() => router.push('/profile/edit-preferences')}
           >
-            <Text style={{ color: 'blue' }}>Edit Preferences</Text>
+            <Text style={{ color: '#007AFF', fontWeight: '600' }}>Edit Preferences</Text>
           </TouchableOpacity>
         </View>
 
@@ -190,7 +202,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }
@@ -202,8 +214,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    padding: 16,
-    paddingTop: 48,
+    padding: 24,
+    paddingTop: 56,
     backgroundColor: '#fff',
     alignItems: 'center',
     flexGrow: 1,
@@ -211,11 +223,18 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     width: '100%',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
     borderRadius: 12,
-    padding: 16,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   avatarPlaceholder: {
     width: 60,
@@ -236,26 +255,35 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#e0e0e0',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    backgroundColor: '#fefefe',
+    padding: 24,
+    marginBottom: 20,
+    backgroundColor: '#f9f9f9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
   },
   cardText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#444',
-    marginBottom: 4,
+    marginBottom: 8,
+    lineHeight: 20,
   },
   footerRow: {
     flexDirection: 'row',
@@ -264,14 +292,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sleekButton: {
-    backgroundColor: '#000',
-    paddingVertical: 12,
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
   },
   sleekButtonText: {
-    color: '#fff',
-    fontSize: 13,
+    color: '#333',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

@@ -36,7 +36,7 @@ export default function FinalizeSetup() {
       const { data, error } = await supabase
         .from('users')
         .select(
-          `goal, weight, height, workout_location, experience_level, days_per_week, program_preference, description, username, target_weight`
+          `goal, weight, height, workout_location, experience_level, days_per_week, program_preference, description, username, target_weight, gender`
         )
         .eq('user_id', userId)
         .single();
@@ -64,11 +64,20 @@ export default function FinalizeSetup() {
 
     // Build payload for Make / GPT webhook
     const payload = {
-      ...userData,
+      goal: userData.goal,
+      weight: userData.weight,
+      height: userData.height,
+      workout_location: userData.workout_location,
+      experience_level: userData.experience_level,
+      days_per_week: userData.days_per_week,
+      program_preference: userData.program_preference,
+      description: userData.description,
       username: userData.username,
+      target_weight: userData.target_weight,
+      user_id: userData.user_id,
       email: userData.email,
       final_comment: extraNotes,
-      target_weight: userData.target_weight,
+      gender: userData.gender, // Ensure this is explicitly included
     };
 
     try {
@@ -97,6 +106,7 @@ export default function FinalizeSetup() {
           program_preference: gptPlan.program_preference,
           onboarding_summary: gptPlan.message || null,
           target_weight: userData.target_weight,
+          gender: userData.gender,
         })
         .eq('user_id', userData.user_id);
 
@@ -138,6 +148,9 @@ export default function FinalizeSetup() {
           <Text style={styles.label}>Height: </Text>{userData.height} cm
         </Text>
         <Text style={styles.row}>
+          <Text style={styles.label}>Gender: </Text>{userData.gender}
+        </Text>
+        <Text style={styles.row}>
           <Text style={styles.label}>Workout Location: </Text>{userData.workout_location}
         </Text>
         <Text style={styles.row}>
@@ -160,7 +173,8 @@ export default function FinalizeSetup() {
       <Text style={styles.subtitle}>Anything else?</Text>
       <TextInput
         style={styles.textArea}
-        placeholder="Add any other details or constraints…"
+        placeholder="Add any other details to your goals or limitations.."
+        placeholderTextColor="#555"
         multiline
         value={extraNotes}
         onChangeText={setExtraNotes}
@@ -189,7 +203,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 24,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f2f4f7',
   },
   center: {
     flex: 1,
@@ -198,20 +212,21 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: '#1a1a1a',
     textAlign: 'center',
     marginBottom: 16,
   },
   card: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#ccc',
     borderRadius: 8,
     padding: 16,
     marginBottom: 24,
     backgroundColor: '#fff',
-    shadowColor: '#000',
+    shadowColor: '#aaa',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -231,17 +246,17 @@ const styles = StyleSheet.create({
   },
   textArea: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#ccc',
     borderRadius: 8,
     minHeight: 100,
     textAlignVertical: 'top',
     padding: 12,
     marginBottom: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#fefefe',
     fontSize: 15,
   },
   button: {
-    backgroundColor: '#333',
+    backgroundColor: '#1e293b',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -253,7 +268,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontWeight: '500',
-    fontSize: 15,
+    fontWeight: '600',
+    fontSize: 16,
   },
 });

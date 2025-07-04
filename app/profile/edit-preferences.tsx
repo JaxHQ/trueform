@@ -95,13 +95,13 @@ export default function EditPreferencesScreen() {
               }
 
               const { error } = await supabase
-                .from('profiles')
+                .from('users')
                 .update({
-                  ...(language !== '' && { language }),
+                  ...(language !== '' && { language_preference: language }),
                   ...(location !== '' && { workout_location: location }),
                   ...(experience !== '' && { experience_level: experience }),
                 })
-                .eq('id', user.id);
+                .eq('user_id', user.id);
 
               if (error) {
                 console.error('Update error:', error.message);

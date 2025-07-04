@@ -72,7 +72,11 @@ export default function OnboardingSummary() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <Text style={styles.header}>Welcome, {data.username}!</Text>
 
         <Text style={styles.section}>✨ Your Nutrition Targets</Text>
@@ -127,14 +131,23 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: { padding: 24, gap: 16 },
-  header: { fontSize: 24, fontWeight: '700' },
-  section: { fontSize: 16, fontWeight: '600', marginTop: 8 },
+  header: { fontSize: 28, fontWeight: '700', color: '#111' },
+  section: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#222',
+    marginTop: 12,
+    marginBottom: 6,
+  },
   card: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 16,
-    backgroundColor: '#fafafa',
+    backgroundColor: '#f3f4f6',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 2,
   },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   rowLabel: { fontWeight: '600', color: '#444' },

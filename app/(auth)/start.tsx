@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { Modal, Pressable, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 
@@ -17,6 +18,8 @@ export default function OnboardingStart() {
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string>('');
+  const [gender, setGender] = useState<'Male' | 'Female' | ''>('');
+  const [genderModalVisible, setGenderModalVisible] = useState(false);
 
   React.useEffect(() => {
     const fetchSession = async () => {
@@ -35,7 +38,7 @@ export default function OnboardingStart() {
 
     const { error, data } = await supabase
       .from('users')
-      .update({ username, email })
+      .update({ username, email, gender })
       .eq('user_id', userId)
       .select();
 
@@ -58,6 +61,36 @@ export default function OnboardingStart() {
         <Text style={styles.subtitle}>
           Your personalized fitness and nutrition companion
         </Text>
+        <Text style={styles.usernameHint}>Select your gender</Text>
+        <View style={styles.pickerWrapper}>
+          <Pressable onPress={() => setGenderModalVisible(true)} style={[styles.input, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+            <Text style={{ color: gender ? '#000' : '#999' }}>
+              {gender || 'Select...'}
+            </Text>
+            <Text style={{ fontSize: 16, color: '#999' }}>▼</Text>
+          </Pressable>
+          <Modal visible={genderModalVisible} transparent animationType="slide">
+            <View style={styles.modalBackdrop}>
+              <View style={styles.modalContainer}>
+                {['Male', 'Female'].map(option => (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() => {
+                      setGender(option as 'Male' | 'Female');
+                      setGenderModalVisible(false);
+                    }}
+                    style={styles.modalOption}
+                  >
+                    <Text style={styles.modalOptionText}>{option}</Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity onPress={() => setGenderModalVisible(false)} style={styles.modalCancel}>
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </View>
         <Text style={styles.usernameHint}>Create a username to get started</Text>
         {!userId && (
           <Text style={{ color: 'red', marginBottom: 20 }}>
@@ -82,28 +115,32 @@ const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    alignItems: 'center',
     backgroundColor: '#fff',
+    paddingTop: 60,
+    paddingHorizontal: 24,
   },
   container: {
+    width: '100%',
+    maxWidth: 400,
     alignItems: 'center',
-    paddingVertical: 40,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
     color: '#555',
   },
   usernameHint: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 8,
+    marginBottom: 6,
     alignSelf: 'flex-start',
   },
   input: {
@@ -112,8 +149,9 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 20,
+    marginBottom: 28,
     fontSize: 16,
+    backgroundColor: '#fff',
   },
   button: {
     backgroundColor: '#000',
@@ -125,5 +163,37 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  pickerWrapper: {
+    width: '100%',
+    marginBottom: 28,
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalOption: {
+    paddingVertical: 12,
+    width: '100%',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  modalCancel: {
+    marginTop: 12,
+  },
+  modalCancelText: {
+    color: '#999',
+    textAlign: 'center',
   },
 });

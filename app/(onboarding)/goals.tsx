@@ -7,6 +7,10 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
@@ -53,87 +57,126 @@ export default function OnboardingGoals() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>What’s your primary goal?</Text>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <Text style={styles.title}>What’s your primary goal?</Text>
 
-      {GOAL_OPTIONS.map((option) => (
-        <TouchableOpacity
-          key={option}
-          onPress={() => setSelected(option)}
-          style={[
-            styles.option,
-            selected === option && styles.optionSelected,
-          ]}
-        >
-          <Text
-            style={[
-              styles.optionText,
-              selected === option && styles.optionTextSelected,
-            ]}
+          {GOAL_OPTIONS.map((option) => (
+            <TouchableOpacity
+              key={option}
+              onPress={() => setSelected(option)}
+              style={[
+                styles.option,
+                selected === option && styles.optionSelected,
+              ]}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  selected === option && styles.optionTextSelected,
+                ]}
+              >
+                {option}
+              </Text>
+            </TouchableOpacity>
+          ))}
+
+          <TouchableOpacity
+            style={[styles.button, (!selected || loading) && styles.buttonDisabled]}
+            disabled={!selected || loading}
+            onPress={handleNext}
+            activeOpacity={0.8}
           >
-            {option}
-          </Text>
-        </TouchableOpacity>
-      ))}
-
-      <TouchableOpacity
-        style={[styles.button, !selected && { opacity: 0.4 }]}
-        disabled={!selected || loading}
-        onPress={handleNext}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Next</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Next</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 28,
+    paddingVertical: 36,
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#FAFAFA',
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 26,
+    fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
+    color: '#333',
+    letterSpacing: 0.3,
   },
   option: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    borderColor: '#ddd',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginBottom: 14,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   optionSelected: {
-    borderColor: '#000',
-    backgroundColor: '#000',
+    borderColor: '#111',
+    backgroundColor: '#eee',
+    shadowColor: '#aaa',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 17,
     textAlign: 'center',
+    color: '#555',
+    fontWeight: '500',
   },
   optionTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#111',
+    fontWeight: '700',
   },
   button: {
-    marginTop: 20,
-    backgroundColor: '#000',
-    paddingVertical: 14,
-    borderRadius: 8,
+    marginTop: 26,
+    backgroundColor: '#111',
+    paddingVertical: 16,
+    borderRadius: 14,
     alignItems: 'center',
+    shadowColor: '#111',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+    shadowOpacity: 0,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });
