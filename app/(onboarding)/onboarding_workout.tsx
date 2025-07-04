@@ -1,4 +1,3 @@
-// app/(onboarding)/workout.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -90,84 +89,86 @@ export default function OnboardingWorkout() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.container}>
-          <Text style={styles.title}>Workout preferences</Text>
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 32 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
+            <Text style={styles.title}>Workout preferences</Text>
 
-          {/* Location */}
-          <Text style={styles.section}>Where will you train?</Text>
-          <View style={styles.row}>
-            {LOCATIONS.map((opt) => (
-              <Pill
-                key={opt}
-                label={opt}
-                selected={location === opt}
-                onPress={() => setLocation(opt)}
-              />
-            ))}
-          </View>
-
-          {/* Experience */}
-          <Text style={styles.section}>Training experience</Text>
-          <View style={styles.row}>
-            {EXPERIENCES.map((opt) => (
-              <Pill
-                key={opt}
-                label={opt}
-                selected={experience === opt}
-                onPress={() => setExperience(opt)}
-              />
-            ))}
-          </View>
-
-          {/* Days per week */}
-          <Text style={styles.section}>Days per week</Text>
-          <View style={styles.row}>
-            {[...Array(7)].map((_, i) => {
-              const val = i + 1;
-              return (
+            {/* Location */}
+            <Text style={styles.section}>Where will you train?</Text>
+            <View style={styles.row}>
+              {LOCATIONS.map((opt) => (
                 <Pill
-                  key={val}
-                  label={`${val}`}
-                  selected={days === val}
-                  onPress={() => setDays(val)}
+                  key={opt}
+                  label={opt}
+                  selected={location === opt}
+                  onPress={() => setLocation(opt)}
                 />
-              );
-            })}
-          </View>
+              ))}
+            </View>
 
-          {/* Program preference */}
-          <Text style={styles.section}>Program preference</Text>
-          <View style={styles.row}>
-            {PROGRAMS.map((opt) => (
-              <Pill
-                key={opt}
-                label={opt}
-                selected={program === opt}
-                onPress={() => setProgram(opt)}
-              />
-            ))}
-          </View>
+            {/* Experience */}
+            <Text style={styles.section}>Training experience</Text>
+            <View style={styles.row}>
+              {EXPERIENCES.map((opt) => (
+                <Pill
+                  key={opt}
+                  label={opt}
+                  selected={experience === opt}
+                  onPress={() => setExperience(opt)}
+                />
+              ))}
+            </View>
 
-          <TouchableOpacity
-            style={[
-              styles.button,
-              !(location && experience && days && program) && { opacity: 0.4 }
-            ]}
-            disabled={loading || !(location && experience && days && program)}
-            onPress={saveAndNext}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Next</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            {/* Days per week */}
+            <Text style={styles.section}>Days per week</Text>
+            <View style={styles.row}>
+              {[...Array(7)].map((_, i) => {
+                const val = i + 1;
+                return (
+                  <Pill
+                    key={val}
+                    label={`${val}`}
+                    selected={days === val}
+                    onPress={() => setDays(val)}
+                  />
+                );
+              })}
+            </View>
+
+            {/* Program preference */}
+            <Text style={styles.section}>Program preference</Text>
+            <View style={styles.row}>
+              {PROGRAMS.map((opt) => (
+                <Pill
+                  key={opt}
+                  label={opt}
+                  selected={program === opt}
+                  onPress={() => setProgram(opt)}
+                />
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.button,
+                !(location && experience && days && program) && { opacity: 0.4 }
+              ]}
+              disabled={loading || !(location && experience && days && program)}
+              onPress={saveAndNext}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Next</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }

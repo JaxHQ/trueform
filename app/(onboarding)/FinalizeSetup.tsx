@@ -1,5 +1,4 @@
-// app/(onboarding)/FinalizeSetup.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +8,10 @@ import {
   Alert,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
@@ -19,6 +22,15 @@ export default function FinalizeSetup() {
   const [submitting, setSubmitting] = useState(false);
   const [userData, setUserData] = useState<any | null>(null);
   const [extraNotes, setExtraNotes] = useState('');
+
+  const scrollRef = useRef<ScrollView>(null);
+
+  const handleExtraNotesFocus = () => {
+    // Give the keyboard a moment, then scroll to bottom
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
 
   /** Fetch user row once **/
   useEffect(() => {
@@ -71,12 +83,11 @@ export default function FinalizeSetup() {
       experience_level: userData.experience_level,
       days_per_week: userData.days_per_week,
       program_preference: userData.program_preference,
-      description: userData.description,
+      description: extraNotes || userData.description,
       username: userData.username,
       target_weight: userData.target_weight,
       user_id: userData.user_id,
       email: userData.email,
-      final_comment: extraNotes,
       gender: userData.gender, // Ensure this is explicitly included
     };
 
@@ -129,73 +140,88 @@ export default function FinalizeSetup() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Review & Finalize</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={64}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: 20,
+            paddingBottom: 120,
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>Review & Finalize</Text>
 
-      <Text style={styles.row}>
-        <Text style={styles.label}>Username: </Text>{userData.username}
-      </Text>
-
-      {/* Summary */}
-      <View style={styles.card}>
-        <Text style={styles.row}>
-          <Text style={styles.label}>Goal: </Text>{userData.goal}
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.label}>Weight: </Text>{userData.weight} kg
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.label}>Height: </Text>{userData.height} cm
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.label}>Gender: </Text>{userData.gender}
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.label}>Workout Location: </Text>{userData.workout_location}
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.label}>Experience: </Text>{userData.experience_level}
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.label}>Days / Week: </Text>{userData.days_per_week}
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.label}>Program Preference: </Text>{userData.program_preference}
-        </Text>
-        {userData.description && (
           <Text style={styles.row}>
-            <Text style={styles.label}>Notes: </Text>{userData.description}
+            <Text style={styles.label}>Username: </Text>{userData.username}
           </Text>
-        )}
-      </View>
 
-      {/* Extra notes */}
-      <Text style={styles.subtitle}>Anything else?</Text>
-      <TextInput
-        style={styles.textArea}
-        placeholder="Add any other details to your goals or limitations.."
-        placeholderTextColor="#555"
-        multiline
-        value={extraNotes}
-        onChangeText={setExtraNotes}
-      />
+          <View style={styles.card}>
+            <Text style={styles.row}>
+              <Text style={styles.label}>Goal: </Text>{userData.goal}
+            </Text>
+            <Text style={styles.row}>
+              <Text style={styles.label}>Weight: </Text>{userData.weight} kg
+            </Text>
+            <Text style={styles.row}>
+              <Text style={styles.label}>Height: </Text>{userData.height} cm
+            </Text>
+            <Text style={styles.row}>
+              <Text style={styles.label}>Gender: </Text>{userData.gender}
+            </Text>
+            <Text style={styles.row}>
+              <Text style={styles.label}>Workout Location: </Text>{userData.workout_location}
+            </Text>
+            <Text style={styles.row}>
+              <Text style={styles.label}>Experience: </Text>{userData.experience_level}
+            </Text>
+            <Text style={styles.row}>
+              <Text style={styles.label}>Days / Week: </Text>{userData.days_per_week}
+            </Text>
+            <Text style={styles.row}>
+              <Text style={styles.label}>Program Preference: </Text>{userData.program_preference}
+            </Text>
+            {userData.description && (
+              <Text style={styles.row}>
+                <Text style={styles.label}>Notes: </Text>{userData.description}
+              </Text>
+            )}
+          </View>
 
-      {/* Submit */}
-      <TouchableOpacity
-        style={[
-          styles.button,
-          submitting && { opacity: 0.6 },
-        ]}
-        disabled={submitting}
-        onPress={handleSubmit}
-      >
-        {submitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Finalize My Plan</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+          <Text style={styles.subtitle}>Anything else?</Text>
+          <TextInput
+            style={styles.textArea}
+            placeholder="Add any other details to your goals or limitations.."
+            placeholderTextColor="#555"
+            multiline
+            value={extraNotes}
+            onChangeText={setExtraNotes}
+            onFocus={handleExtraNotesFocus}
+          />
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              submitting && { opacity: 0.6 },
+            ]}
+            disabled={submitting}
+            onPress={handleSubmit}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Finalize My Plan</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -203,72 +229,75 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 24,
-    backgroundColor: '#f2f4f7',
+    backgroundColor: '#f9fafb',
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f9fafb',
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#111827',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   card: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 24,
-    backgroundColor: '#fff',
-    shadowColor: '#aaa',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 28,
+    backgroundColor: '#ffffff',
+    shadowColor: '#00000020',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
   },
   row: {
-    marginBottom: 8,
-    fontSize: 15,
+    marginBottom: 10,
+    fontSize: 16,
+    color: '#374151',
   },
   label: {
     fontWeight: '600',
-    color: '#555',
+    color: '#6b7280',
   },
   subtitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
   },
   textArea: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    minHeight: 100,
+    borderColor: '#d1d5db',
+    borderRadius: 12,
+    minHeight: 110,
     textAlignVertical: 'top',
-    padding: 12,
-    marginBottom: 20,
-    backgroundColor: '#fefefe',
-    fontSize: 15,
+    padding: 16,
+    marginBottom: 24,
+    backgroundColor: '#ffffff',
+    fontSize: 16,
+    color: '#374151',
   },
   button: {
-    backgroundColor: '#1e293b',
-    paddingVertical: 14,
-    borderRadius: 8,
+    backgroundColor: '#2563eb',
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 18,
   },
 });

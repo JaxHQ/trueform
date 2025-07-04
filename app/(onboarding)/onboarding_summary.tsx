@@ -7,8 +7,10 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 
@@ -72,49 +74,50 @@ export default function OnboardingSummary() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
+      <KeyboardAvoidingView
+        style={styles.wrapper}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Text style={styles.header}>Welcome, {data.username}!</Text>
+        <View style={{ flex: 1 }}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            showsVerticalScrollIndicator={false}
+            bounces={true}
+            scrollEventThrottle={16}
+            decelerationRate="normal"
+            contentInsetAdjustmentBehavior="automatic"
+          >
+            <Text style={styles.header}>Welcome, {data.username}!</Text>
 
-        <Text style={styles.section}>✨ Your Nutrition Targets</Text>
-        <View style={styles.card}>
-          <Row label="Calories" value={`${data.calorie_target} kcal`} />
-          <Row label="Protein" value={`${data.protein_target} g`} />
-          <Row label="Carbs" value={`${data.carbs_target} g`} />
-          <Row label="Fat" value={`${data.fat_target} g`} />
-        </View>
-
-        <Text style={styles.section}>🏋️ Training Plan</Text>
-        <View style={styles.card}>
-          <Row
-            label="Program"
-            value={
-              data.program_preference === 'My Own Program'
-                ? 'Your Own Program'
-                : 'TrueForm-Built'
-            }
-          />
-        </View>
-
-        {data.onboarding_summary && (
-          <>
-            <Text style={styles.section}>📣 Coach’s Note</Text>
+            <Text style={styles.section}>✨ Your Nutrition Targets</Text>
             <View style={styles.card}>
-              <Text style={styles.message}>{data.onboarding_summary}</Text>
+              <Row label="Calories" value={`${data.calorie_target} kcal`} />
+              <Row label="Protein" value={`${data.protein_target} g`} />
+              <Row label="Carbs" value={`${data.carbs_target} g`} />
+              <Row label="Fat" value={`${data.fat_target} g`} />
             </View>
-          </>
-        )}
 
-        <TouchableOpacity
-          style={styles.cta}
-          onPress={() => router.replace('/')}
-        >
-          <Text style={styles.ctaText}>Let’s Train!</Text>
-        </TouchableOpacity>
-      </ScrollView>
+            {data.onboarding_summary && (
+              <>
+                <Text style={styles.section}>📣 Coach’s Note</Text>
+                <View style={styles.card}>
+                  <Text style={styles.message}>{data.onboarding_summary}</Text>
+                </View>
+              </>
+            )}
+
+            <TouchableOpacity
+              style={styles.cta}
+              onPress={() => router.replace('/')}
+            >
+              <Text style={styles.ctaText}>Let’s Train!</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -128,37 +131,78 @@ const Row = ({ label, value }: { label: string; value: string }) => (
 );
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  safe: { 
+    flex: 1, 
+    paddingTop: Platform.OS === 'android' ? 25 : 0,
+    backgroundColor: '#fff',
+  },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  container: { padding: 24, gap: 16 },
-  header: { fontSize: 28, fontWeight: '700', color: '#111' },
+  container: { paddingHorizontal: 24, paddingVertical: 32, paddingBottom: 60, gap: 20 },
+  header: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 4,
+    letterSpacing: 0.5,
+    marginTop: 4,
+    textAlign: 'center',
+  },
   section: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#222',
-    marginTop: 12,
-    marginBottom: 6,
+    marginTop: 6,
+    marginBottom: 4,
+    letterSpacing: 0.3,
   },
   card: {
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#fafafa',
+    borderColor: '#f0f0f0',
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 2,
+    shadowRadius: 6,
+    elevation: 3,
+    gap: 6,
   },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  rowLabel: { fontWeight: '600', color: '#444' },
-  rowValue: { fontWeight: '600' },
-  message: { fontSize: 14, lineHeight: 20, color: '#333' },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  rowLabel: { fontWeight: '500', color: '#555' },
+  rowValue: { fontWeight: '700', color: '#222' },
+  message: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#444',
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
   cta: {
     marginTop: 24,
-    backgroundColor: '#000',
+    backgroundColor: '#111',
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 3,
   },
-  ctaText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  ctaText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 15,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
 });
