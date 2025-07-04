@@ -293,8 +293,7 @@ export default function HomeScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
             {proteinPast7Days.slice().reverse().map(({ log_date, total_protein }) => {
               const diffRatio = (total_protein - proteinTarget) / proteinTarget;
-              const withinPad = Math.abs(diffRatio) <= 0.10;
-              const hitTarget = withinPad;
+              const hitTarget = diffRatio >= -0.10;
               return (
                 <View key={log_date} style={{ alignItems: 'center', marginHorizontal: 8 }}>
                   <View style={{
@@ -329,7 +328,7 @@ export default function HomeScreen() {
         {/* Send Feedback Button */}
         <TouchableOpacity
           onPress={() =>
-            Linking.openURL('jnhemopo@gmail.com?subject=TrueForm Feedback&body=Your feedback here...')
+            Linking.openURL('mailto:jnhemopo@gmail.com?subject=TrueForm Feedback&body=Your feedback here...')
           }
           style={{
             backgroundColor: '#F1F1F1',

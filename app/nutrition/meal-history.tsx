@@ -11,7 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Dimensions } from 'react-native';
 
 const formatDate = (d: Date) => {
   const y = d.getFullYear();
@@ -28,6 +29,7 @@ export default function MealHistoryScreen() {
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
   const [bodyweight, setBodyweight] = useState<number | null>(null);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     (async () => {
@@ -75,7 +77,7 @@ export default function MealHistoryScreen() {
   const totalCalories = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <View style={styles.header}>
         <View style={{ width: 24 }} />
         <Text style={styles.headerTitle}>Meal History</Text>
@@ -88,7 +90,13 @@ export default function MealHistoryScreen() {
         <FlatList
           data={meals}
           keyExtractor={(item) => item.mealid}
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 48,
+            paddingHorizontal: 24,
+            minHeight: Dimensions.get('window').height,
+            flexGrow: 1,
+          }}
           ListHeaderComponent={
             <>
               <View style={styles.dateNavigation}>
@@ -139,12 +147,12 @@ export default function MealHistoryScreen() {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 2 },
+  container: { flex: 1, backgroundColor: '#fff' },
   header: {
     paddingTop: 2,
     flexDirection: 'row',
